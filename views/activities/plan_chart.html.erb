@@ -1,0 +1,28 @@
+<h2 style="margin-bottom:1.4em"><%=@sub_title%><%=@area_name%>活动計畫图表</h2>
+<%= leaders_and_peroid_and_types_bar %>
+
+<table border="1" cellpadding="5" cellspacing="5" style="border-collapse: collapse;margin-top:10px;" bordercolor="#999999" align="center">
+  <% max_num_in_row = 7 #一行最多放幾個储存格 %>
+  <% n = 0 #判斷是否換列用 %>
+  <% @dates.each do |date| %>
+    <% if n % max_num_in_row == 0 %>
+      <tr>
+    <% end %>    
+        <td valign='top' align="center" style="width:9em;height:8.5em">
+          <table border='0' cellpadding='3' cellspacing='0' style='border-collapse: collapse' bordercolor='#444444' width='100%'>
+            <tr align='center'>
+            <td class='<%= Date.today.to_s(:db) == date ? 'th_row_red' : 'th_row' %>' style='font-size:0.5em'><%= show_chinese_full_date(date.to_time) %></td>
+            </tr><tr><td valign='top' style="font-size:0.2em">
+              <% @activities.each do |act| %>
+                <% if act.begin_date.to_s(:db) == date %>
+                  <%= link_to show_time(act.begin_time)+" "+act.students, {:action => :edit, :id => act}, {:title => activity_description(act) } %><br/>
+                <% end %>
+              <% end %>
+            </td></tr></table>
+        </td>
+    <% n += 1 %>
+    <% if n % max_num_in_row == 0 %>
+      </tr>
+    <% end %>    
+  <% end %>  
+</table>

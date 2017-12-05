@@ -1,0 +1,8 @@
+<h2><%= link_to '參數變化表', params_url %></h2>
+
+<%= render :partial => 'table' %>
+
+<p align="center">
+	共計 <%= @param_changes.size %> 笔资料 &nbsp;
+	合計 <%= @sum_of_change_value %> 分 约 <%= sprintf("%0.01f",@sum_of_change_value/60.0) %> 小时
+	</p>

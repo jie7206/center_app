@@ -1,0 +1,34 @@
+<h2><%= link_to asset_belongs_to_arr.rassoc(@asset_belongs_to_id.to_i)[0] + '項目一覽表', new_asset_item_path %><%=asset_belongs_to_link%><%=asset_item_details_catalogs_link%><%=buy_house_plan_link%><%=cal_retire_day_link%></h2>
+
+<% @table_width = 1300 %>
+<% case @asset_belongs_to_id.to_i
+    when 1 %>
+      <%= render :partial => 'my_asset_statistics_table' %>
+<%  when 2 %>    
+      <%= render :partial => 'center_asset_statistics_table' %>
+<% end %>      
+
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse" align="center" width="<%= @table_width %>">
+  <tr class="th_row">
+    <td width="70" align="center">類目</td>
+    <td><%= link_to '名稱', '/myinfocenter/MyInfoCenter.html' %></td>
+    <td width="90">等值台幣</td>
+    <td width="90">原始金額</td>
+    <td width="20">幣別</td>
+    <td width="85">更新日</td>
+  </tr>
+
+<% @asset_items.each do |asset_item| %>
+<tr onMouseOver="this.style.background='#EFEF88';" onMouseOut="this.style.background='#FFFFFF';">
+            <td align="center"><%= link_to( asset_item.asset.title, edit_asset_item_path(asset_item) ) %></td>
+            <td align="left"><%= link_to asset_item.title, { :controller => 'asset_item_details', :action => 'new', :asset_item_id => asset_item.id }, { :title => asset_item.memo, :target => '_blank' } %> <%= image_tag('icon/pass_ok.png', :width => 15, :height => 12) if asset_item.is_save_for_goal %> <%= image_tag('icon/red_cross.png', :width => 15, :height => 15) if asset_item.is_emergency %></td>
+            <td align="right"><%= asset_item.to_ntd %></td>
+            <td align="right"><form action="/main/update_asset_item_amount/<%=asset_item.id%>"><%= text_field_tag( :new_amount,  asset_item.amount, :style => 'border: 0px;text-align:right;width: 150px;font-family:Verdana;font-size:15px;', :onclick => 'this.select();' ) %><%= hidden_field_tag( :ori_amount,  asset_item.amount ) %> <%= image_submit_tag('icon/empty.gif', :width=> 1); %> </form></td>
+            <td><%= asset_item.currency %></td>
+            <td align="center"><%= asset_item.updated_at.strftime("%y-%m-%d") 
+ %></td>
+      </tr>
+<% end %>
+</table>
+<a name="bottom"/>
+<p>&nbsp;</p>

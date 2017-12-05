@@ -1,0 +1,28 @@
+<% form_for(@param_change) do |f| %>
+<%= f.error_messages %>
+<% all_rec_change_params = Param.all(:conditions=>["rec_change = ?",true],:order=>"order_num") %>
+  <p>所屬參數：
+  <% if params[:param_id] %>
+  	<%= select("param_change", "param_id", all_rec_change_params.collect {|p| [ p.name+" "+truncate(p.title,10), p.id ]}, { :include_blank => true, :selected => params[:param_id].to_i }) %>
+  <% else %>
+  	<%= select("param_change", "param_id", all_rec_change_params.collect {|p| [ p.name+" "+truncate(p.title,10), p.id ]}, { :include_blank => true}) %>
+  <% end %>
+  <p/>
+  <% if params[:life_goal_id] %>
+    <%= hidden_field_tag( :life_goal_id, params[:life_goal_id] ) %>
+    <%= f.check_box :is_enjoy, :checked => false %> 列入<%= value_of('enjoy_life_title') %>
+  <% else %>
+    <%= f.check_box :is_enjoy %> 列入<%= value_of('enjoy_life_title') %>
+  <% end %>
+  <% text_field_size = 70 %>
+  </p>
+  <p>所屬日期：<%= f.date_select :rec_date, :use_month_numbers => true, :default => Date.today %></p>
+  <p>標題說明：<%= f.text_field :title, :size => text_field_size %></p>
+  <p>數值變化：<%= f.text_field :change_value, :onclick => "this.select()", :size => text_field_size %></p>
+  <p>當前數值：<%= f.text_field :value, :size => text_field_size %></p>
+  <% if @param_change.created_at %>
+    <p>创建日期：<%= @param_change.created_at %></p>
+    <p>更新日期：<%= @param_change.updated_at %></p> 
+  <% end %>
+  <p><%= f.submit submit_title %>&nbsp;&nbsp;<%= button_to_function '返回前頁', "history.back();" %></p>
+<% end %>

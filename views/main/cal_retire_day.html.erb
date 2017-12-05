@@ -1,0 +1,73 @@
+<h2><%= link_to '財務收支试算表', '#expect_retire_date' %></h2>
+<% # 设定終止日期
+        if params[:input_list_end_date]
+            @list_end_date = params[:input_list_end_date].to_date
+        else
+            @list_end_date = value_of("begin_insurance_back").to_date
+        end
+        # 初始化参数
+        @retire_now_day_expense = @total_time_save_interest = @all_save_money = 0
+        @warn_message = []
+        show_spaces = "&nbsp;"*2
+        text_field_size = 6
+       # id=7 为仕傑的中國工商銀行活期存款
+       icbc_deposit_1 = AssetItem.find(7).amount
+       # id=98 为孟丽的中國工商銀行收房租还贷款用
+       icbc_deposit_2 = AssetItem.find(98).amount
+       # id=95 为新光人寿保单贷款本金
+       xinguang_loan = AssetItem.find(95)
+       # id=96 为中国太平人寿保单贷款本金
+       taiping_loan = AssetItem.find(96)
+       # 马上住红树湾且不还本金，则每日可花费多少元
+       retire_now_daily_money = value_of("retire_now_daily_money")
+       # 房屋出租打勾与否
+       with_rental_income_tf = params[:with_rental_income] == 'true' ? true : false
+       # 太平解约打勾与否
+       destroy_taiping_tf = params[:destroy_taiping] == 'true' ? true : false
+       # 输出每一天打勾与否
+       is_output_everyday_tf = params[:is_output_everyday] == 'true' ? true : false
+%>
+<% if !params[:noexe] # 若传入noexe参数则表示仅显示输入表单但不执行表格运算 %>
+    <%= render :partial => 'real_retire_table', :locals => { :table_width => 1300, :list_end_date => @list_end_date } %>
+<% end %>
+<!--显示计算每月能用多少钱的结果 //-->
+<% if (params[:retire_now_date] and @retire_now_day_expense > 0) or params[:retire_now_daily_money] or params[:noexe] # 若传入noexe参数则表示仅显示输入表单但不执行表格运算 %>
+    <% if @retire_now_day_expense > 0 or params[:retire_now_daily_money] %>
+        <div align="center" style="font-size:1.2em">
+        <% # 显示每日可用的结果文字
+                show_daily_use = @retire_now_day_expense > 0 ? @retire_now_day_expense : params[:retire_now_daily_money].to_i %>
+        若 <%= params[:retire_now_date] %> <%= "解约" if params[:destroy_taiping] == 'true' %><%= "续保" if params[:destroy_taiping] != 'true' %><%= "出租" if params[:with_rental_income] == 'true' %><%= "自住" if params[:with_rental_income] != 'true' %>退休，直到 <%= @list_end_date %>，每日花费 <%= show_daily_use %> 元，相当于每月 <%= show_daily_use*31 %> 元人民幣，最后剩下 <%= @all_save_money %> 元新台幣
+        </div>
+    <% end %>
+    <% form_tag( :controller => "main", :action => "cal_retire_day", :method => "post" ) do %>
+    <div align="center" style="font-size:1.1em">
+        <p>工銀存款：<%= text_field_tag :icbc_deposit_1, params[:icbc_deposit_1] || icbc_deposit_1, :size => text_field_size, :onclick => "this.select()", :title => "仕傑工銀存款"  %><%= show_spaces %>
+            <%= text_field_tag :icbc_deposit_2, params[:icbc_deposit_2] || icbc_deposit_2, :size => text_field_size, :onclick => "this.select()", :title => "孟丽工銀存款"  %><%= show_spaces %>
+            新光贷款：<%= text_field_tag :xinguang_loan_amount, params[:xinguang_loan_amount] || xinguang_loan.amount, :size => text_field_size, :onclick => "this.select()", :title => "新光贷款本金"  %><%= show_spaces %>
+            <%= text_field_tag :xinguang_loan_interest_rate, params[:xinguang_loan_interest_rate] || xinguang_loan.loan_interest_rate, :size => text_field_size, :onclick => "this.select()", :title => "新光贷款利率"  %><%= show_spaces %>
+            <%= text_field_tag :xinguang_loan_begin_date, params[:xinguang_loan_begin_date] || xinguang_loan.loan_begin_date.to_s(:db), :size => text_field_size, :onclick => "this.select()", :title => "新光贷款起算"  %><%= show_spaces %>
+            太平贷款：<%= text_field_tag :taiping_loan_amount, params[:taiping_loan_amount] || taiping_loan.amount, :size => text_field_size, :onclick => "this.select()", :title => "太平贷款本金"  %><%= show_spaces %>
+            <%= text_field_tag :taiping_loan_interest_rate, params[:taiping_loan_interest_rate] || taiping_loan.loan_interest_rate, :size => text_field_size, :onclick => "this.select()", :title => "太平贷款利率"  %><%= show_spaces %>
+            <%= text_field_tag :taiping_loan_begin_date, params[:taiping_loan_begin_date] || taiping_loan.loan_begin_date.to_s(:db), :size => text_field_size, :onclick => "this.select()", :title => "太平贷款起算"  %>
+        </p>
+        <p>退休日期：<%= text_field_tag :retire_now_date, params[:retire_now_date], :size => text_field_size, :onclick => "this.select()"  %><%= show_spaces %>每日可用：<%= text_field_tag :retire_now_daily_money, params[:retire_now_daily_money] || retire_now_daily_money, :size => 7, :onclick => "this.select()"  %>元人民幣<%= show_spaces %>
+        終止日期：<%= text_field_tag :input_list_end_date, params[:input_list_end_date] || "2034-12-31", :size => 7  %><%= show_spaces %>
+            <%= check_box_tag 'destroy_taiping', 'true', destroy_taiping_tf %> 太平解约
+            <%= show_spaces %>
+            <%= check_box_tag 'with_rental_income', 'true', with_rental_income_tf %> 房屋出租
+            <%= show_spaces %>
+        <%= check_box_tag 'is_output_everyday', 'true', is_output_everyday_tf %> 输出每一天<%= show_spaces %>
+        <%= hidden_field_tag(:cal_money_expense, 'true') %>
+        <%= hidden_field_tag(:not_show_table, 'false') %>
+        <%= hidden_field_tag(:list_end_date, value_of("begin_insurance_back")) %>
+        <%= submit_tag( "开始试算" ) %><%= show_spaces %></p>
+    </div>
+    <% end %>
+<% end %> 
+<% if @total_time_save_interest > 0 %>
+    <p align="left" style="margin-left:27px">得到的利息总值：<%= @total_time_save_interest %></p>
+<% end %>
+<% if @warn_message.size > 0 and not @retire_now_day_expense > 0 %>
+   <p align="left" style="margin-left:27px">以下<%= @warn_message.size %>個日期的存款總值为负数请注意：<%= @warn_message.join(" ") %></p>
+<% end %>
+<p/>

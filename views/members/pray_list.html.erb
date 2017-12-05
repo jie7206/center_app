@@ -1,0 +1,74 @@
+<h2><%= @center_name + '<u>' + @sub_title + '</u>名單一覽表' %></h2>
+
+<div id='status_bar_red'>
+    <%# 显示前几名最需要联系的重点名单 %>
+    <%= show_is_on_table_names( 10 ) %>
+</div>
+
+<%= area_and_career_bar %>
+
+<table border="1" cellpadding="5" cellspacing="2" style="border-collapse: collapse" bordercolor="#444444" align="center" width="1280">
+  <tr class="th_row">
+    <!--
+  	<td width="25"><%= link_to "排序", :order_method => "order_num", :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p] %></td> //-->
+    <td width="60"><%= link_to "姓名", new_member_path %></td>
+    <!--td><%= link_to "類別", :order_method => "career", :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p] %></td>
+    <td><%= link_to "地區", :order_method => "area_id", :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p] %></td-->
+    <td width="140">手機</td>
+    <td width="100">生日</td>
+    <td width="60">歲數</td>
+    <td width="120"><%= link_to "最近來訪日", :order_method => "last_class_date", :order_desc => 1, :include_trace => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p] %></td>
+    <td>最近参與的活動與感想</td>
+    <td width="400">帶領計畫</td>
+  </tr>
+  
+<% 
+  name_list_arr = []
+  @members.each do |member| 
+    if !member.admin_only or session[:role] == 'admin'
+      last_step_id = member.trace.last_step_id
+      next_step_id = member.trace.next_step_id  
+      name_list_arr << member.name
+%>
+    <tr height="70" onMouseOver="this.style.background='#EFEF88';" onMouseOut="this.style.background='#FFFFFF';">
+      <!--
+      <td><% form_remote_tag( :url => url_for(:controller=>'members',:action=>'update_table_field_value',:field_name=>'order_num',:id=>member ), :html => { :id => "frm#{member.id}" } ) do -%>
+                 <%= text_field_tag( :field_value,  member.order_num, :style => 'border: 0px;text-align:right;width: 95%;font-family:Verdana;font-size:15px;', :onclick => 'this.select()' ) %> <%= image_submit_tag('icon/empty.gif', :width=> 1); %>
+               <% end -%></td> //-->
+      <td align="center" <%= show_is_on_table(member.is_on_table) %>><%= link_to h(member.name), edit_member_path(member) %></td>
+      <!--td><%= link_to career_arr.rassoc(member.career)[0], edit_member_path(member) %></td>
+      <td><%= link_to area_arr.rassoc(member.area_id)[0], edit_member_path(member) %></td-->
+      <td align="center"><%= link_to member.mobile, edit_member_path(member) %></td>
+      <td align="center"><%= link_to member.birthday, edit_member_path(member) %></td>
+      <td align="center"><%= link_to member.get_age, edit_member_path(member) %></td>
+      <% #取出最近一堂课的资料
+          last_class = member.get_last_class %>
+      <td align="center"><%= link_to last_class.class_date, { :controller => 'histories', :action => 'index_for_member', :mid => member.id }, { :target => '_blank' } %></td> 
+      <td valign="top" class="small_words"><%= link_to last_class.class_title, edit_trace_path(member.trace) %><%=  ' → ' + truncate(last_class.class_feel, 30, "..") if last_class.class_feel and last_class.class_feel.length > 3 %></td>
+      <td valign="top" class="small_words"><% form_remote_tag( :url => url_for(:controller=>'members',:action=>'update_table_field_value',:field_name=>'pray_note',:id=>member ), :html => { :id => "frm#{member.id}" } ) do -%>
+                     <%= text_area_tag( :field_value,  member.pray_note, :style => 'border: 0px;width:100%;height:48px;font-size:1.0em;' ) %> <%= image_submit_tag('icon/empty.gif', :width=> 1); %>
+                   <% end -%></td>    
+    </tr>
+  <% end %>
+<% end %>
+</table>
+
+<p class="result_text"><%=@sub_title%>包含 [<%=name_list_arr.join(" ,")%>] 共計 <%= name_list_arr.size %> 人 <%= show_student_count %></p>
+<!--
+<hr/>
+<h3 style="font-size:1.8em">禱告內容一覽表</h3>
+<div style="font-size:1.6em">
+<%
+  @members.each do |member| 
+    if !member.admin_only or session[:role] == 'admin'
+%>
+      <p>
+        <%= member.name %>:<br/>
+        <%= member.pray_note.gsub("\n",'<br/>') if member.pray_note %>
+      </p>
+<%  end
+  end
+%>
+</div>
+  //-->
+

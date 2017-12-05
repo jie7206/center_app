@@ -1,0 +1,48 @@
+<p>
+  <b>Name:</b>
+  <%=h @member.name %>
+</p>
+
+<p>
+  <b>Sex:</b>
+  <%=h @member.sex %>
+</p>
+
+<p>
+  <b>Mobile:</b>
+  <%=h @member.mobile %>
+</p>
+
+<p>
+  <b>Birthday:</b>
+  <%=h @member.birthday %>
+</p>
+
+<p>
+  <b>Email:</b>
+  <%=h @member.email %>
+</p>
+
+<p>
+  <b>Career:</b>
+  <%=h @member.career %>
+</p>
+
+<p>
+  <b>Picture:</b>
+  <%=h @member.picture %>
+</p>
+
+<p>
+  <b>Introducer:</b>
+  <%=h @member.introducer %>
+</p>
+
+<p>
+  <b>Last class date:</b>
+  <%=h @member.last_class_date %>
+</p>
+
+
+<%= link_to 'Edit', edit_member_path(@member) %> |
+<%= link_to 'Back', members_path %>

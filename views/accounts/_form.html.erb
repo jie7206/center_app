@@ -1,0 +1,8 @@
+<% form_for(@account) do |f| %>
+  <%= f.error_messages %>
+  <p>姓名：<%= f.select :member_id, member_ids %></p>
+  <p>帳號：<%= f.text_field :username %></p>
+  <p>密碼：<%= f.password_field :password %></p>
+  <p>角色：<%= f.select :role, roles_arr %> <%= f.check_box :is_accountant %> 擔任會計</p>
+  <p><%= f.submit submit_title %>&nbsp;&nbsp;<%= button_to_function '返回前頁', "history.back();" %></p>
+<% end %>

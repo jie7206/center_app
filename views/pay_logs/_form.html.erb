@@ -1,0 +1,19 @@
+<% form_for(@pay_log) do |f| %>
+  <%= f.error_messages %>
+<% # if session[:login_role] == 'admin' %>
+  <p>申請人：<%= f.select :member_id, member_ids %></p>
+<% # else %>  
+    <% if @pay_log.member_id %>
+        <%= f.hidden_field :member_id %>
+    <% else %>
+        <%= f.hidden_field :member_id, :value => session[:login_mid] %>
+    <% end %>
+<% # end %>
+  <p>項目名稱：<%= f.text_field :title %></p>
+  <p>申請金額：<%= f.text_field :amount %>
+          <% # if session[:login_role] == 'admin' || Account.find_by_member_id(session[:login_mid]).is_accountant %>      
+              <%= f.check_box :is_received %> 申請人已經收到錢了
+          <% # end %>          
+  </p>
+  <p><%= f.submit submit_title %>&nbsp;&nbsp;<%= button_to_function '返回前頁', "history.back();" %></p>
+<% end %>

@@ -1,0 +1,28 @@
+<h2 style="margin-bottom:1.4em"><%=@sub_title%><%=@area_name%>活动計畫表</h2>
+<%= leaders_and_peroid_and_types_bar %>
+
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse" bordercolor="#444444" align="center" width="90%">
+  <tr class="th_row">
+    <td width="110"><%= link_to '日期', new_activity_path %></td>
+    <td>时间</td>
+    <td>地点</td>
+    <td>内容</td>
+    <td width="90">主持</td>
+    <td width="90">講師</td>
+    <td>学生 / 参与者</td>
+  <tr>
+
+<% @activities.each do |activity| %>
+  <tr align="center">
+    <td><%= link_to activity.begin_date, edit_activity_path(activity) %></td>
+    <td><%= show_time(activity.begin_time) %></td>
+    <td align="left"><%= activity.place %></td>
+    <td align="left"><%= h activity.title %></td>
+    <td><%= activity.manager %></td>
+    <td><%= activity.teachers %></td>
+    <td><%= activity.students %></td>    
+  </tr>
+<% end %>
+</table>
+
+

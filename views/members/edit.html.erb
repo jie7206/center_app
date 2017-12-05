@@ -1,0 +1,13 @@
+<h1><%=@member.name%>的個人資料 <span class="link_to_history"><%= link_to '[活动進度]', :controller => 'traces', :action => 'edit', :id => @member.trace.id %> <%= link_to '[活动紀錄]', :controller => 'histories', :action => 'index_for_member', :mid => @member.id %></span></h1>
+<%= render :partial => 'form', :locals => { :submit_title => '儲存修改' } %>
+<% if session[:role] == 'admin' %>
+    <p><%=@member.name%>的奉獻紀錄：
+        <ul>
+            <% Donation.all( :order => "created_at desc, catalog_id", :include => :member, :conditions => ["member_id = ?", @member.id] ).each do |rec| %>
+                <li><%= rec.title %>：<%= rec.amount.to_i %></li>
+            <% end %>
+        </ul> 
+    </p>
+    <p>奉獻總額：<%= link_to @member.donation_total_amount, :controller => "donations", :action => "index", :data_field => 'member_id', :data_value => @member.id %></p> 
+	<p class="del_link"><%= link_to '刪除此名單', @member, :confirm => "你確定要刪除#{@member.name}的個人資料?", :method => :delete %></p>
+<% end %>

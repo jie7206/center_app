@@ -1,0 +1,19 @@
+<% form_for(@asset_item) do |f| %>
+<%= f.error_messages %>
+	<p>所屬：<%= select("asset_item", "asset_belongs_to_id", asset_belongs_to_arr.collect {|a| [ a[0], a[1] ]  }, { :include_blank => false }) %>
+  <p>類目：<%= f.select :asset_id, asset_ids %></p>
+  <p>名稱：<%= f.text_field :title %></p>
+  <p>金額：<%= f.text_field :amount, :size => 8, :onclick => "this.select()" %>
+<% if !@asset_item.asset or @asset_item.asset.code == 'flow_assets' %>
+   <%= f.check_box :is_emergency %> 可当作紧急预备金
+   <%= f.check_box :is_save_for_goal %> 列为定存目标的资产项目
+<% end %>
+  </p>
+  <p>幣別：<%= f.select :currency, currency_arr %></p>
+<% if !@asset_item.asset or @asset_item.asset.code == 'loan_items' %>
+  <p>利息年利率：<%= f.text_field :loan_interest_rate, :size => 4, :onclick => "this.select()" %> %</p>
+  <p>利息起算日：<%= f.date_select :loan_begin_date, :start_year => Time.now.year-2, :end_year => Time.now.year, :use_month_numbers => true %></p>
+<% end %>
+  <p>備註：<br/><%= f.text_area :memo, :size => "50x6" %></p>
+  <p><%= f.submit submit_title %>&nbsp;&nbsp;<%= button_to_function '返回前頁', "history.back();" %></p>
+<% end %>

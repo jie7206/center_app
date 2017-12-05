@@ -1,0 +1,15 @@
+<h1><%=@history.name%>的活动紀錄</h1>
+
+<% form_for(@history) do |f| %>
+	  <%= f.error_messages %>
+	  <p>活动类别：<%= select("history", "class_type", class_type_arr.collect {|c| [ c[0], c[1] ] }, { :include_blank => false }) %> <%= f.check_box :is_public_class %> 可视为公的活动</p>
+	  <p>活动日期：<%= f.date_select :class_date, :use_month_numbers => true %></p>
+	  <p>活动地区：<%= select("history", "area_id", area_arr.collect {|a| [ a[0], a[1] ] }, { :include_blank => false }) %></p>
+	  <p>活动老師：<%= select("history", "class_teacher", Member.all(:order => "id").collect {|m| [ m.name, m.name ] }, { :include_blank => false }) %></p>
+	  <p>活动名稱：<%= f.text_field :class_title, :size => "51" %></p>
+	  <p>活动感想：<br/><%= f.text_area :class_feel, :size => "60x3" %></p>
+	<% if session[:role] == 'admin' %>  
+	  <p><%= f.submit '儲存修改' %>&nbsp;&nbsp;<%= button_to_function '返回前頁', "history.back();" %></p>
+	  <p class="del_link"><%= link_to '刪除此紀錄', @history, :confirm => "你確定要刪除此筆紀錄嗎?", :method => :delete %></p>
+	<% end %>
+<% end %>

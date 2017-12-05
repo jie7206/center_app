@@ -1,0 +1,43 @@
+<h2><%= link_to @page_title, :action => "buy_house_plan" %></h2>
+
+   <table width="1280" align="center" cellspacing="0" cellpadding="5" style="background-color:#FFFFFF;border:1px solid">
+   	<tr style="background-color:#b5e3f8;text-align:center">
+   		<th><a href="#" title="以1974为生日年">退休年龄</a></th>
+         <th><a href="#" title="单位：人民币(万)">购房总价</a></th>
+         <th><a href="#" title="来自每月的工作收入。单位：人民币">每月存款</a></th>
+         <th><a href="#" title="来自新光金如意保单贷款，年息：6.5%。单位：新台币">贷款总额</a></th>
+         <th><a href="#" title="金如意保单贷款的利息总额。单位：新台币">利息总额</a></th>
+         <th><a href="#" title="将房屋出租后，每月能收取的金额，会依照通货膨胀率每年提升。单位：人民币">每月收租</a></th>
+         <th><a href="#" title="将房屋出租后，每年能收取的金额，会依照通货膨胀率每年提升。单位：人民币">每年收租</a></th>
+         <th><a href="#" title="每年预期的收获报酬率或通货膨胀率">增值利率</a></th>
+         <th><a href="#" title="贷款本金还清的年份">还清年份</a></th>
+         <th><a href="#" title="开始没有工资收入的年份">退休年份</a></th>
+         <th><a href="#" title="从退休年初一直到2029年末，平均每个月可用的生活费额度">每月可用</a></th>
+         <th><a href="#" title="2029年末的存款总值">存款总值</a></th>
+         <th><a href="#" title="2030年的房产总值">房产总值</a></th>
+         <th><a href="#" title="2030年的出租月收入。单位：人民币">出租月入</a></th>
+         <th><a href="#" title="2030年的自住月收入。单位：人民币">自住月入</a></th>
+         <th><a href="#" title="若于2029卖房，则2030年的现金月收入。单位：人民币">卖出月入</a></th>
+   	</tr>
+      <% @results.each do |r| %>
+         <% bg_color = ( r[:house_value] > 0 and r[:added_rate] == @added_rate_begin and r[:balance_save_until_save_year] > 0 ) ? '#FAD1EF' : '#FFFFFF' %>
+         <tr align="right" bgcolor="<%=bg_color%>" onMouseOver="this.style.background='#EFEF88';" onMouseOut="this.style.background='<%=bg_color%>';">
+            <td align="center"><%= r[:retire_year].to_i - 1974 %>歲</td>
+            <td><a href="#" title="购房总价：<%= r[:house_value] %>，自备款：<%= (@self_money*10000*@exchange_rates_MCY).to_i %> 新台币"><%= number_to_currency(r[:house_value]/@exchange_rates_MCY/10000, :unit => '', :precision => 2) %></a></td>
+            <td><a href="#" title="每月工作存款(人民币)"><%= r[:month_save] %></a></td>
+            <td><a href="#" title="保单贷款总额(新台币)"><%= r[:loan_total] %></a></td>
+            <td><a href="#" title="保单贷款利息总额：<%= (r[:sum_of_loan_interests]/@exchange_rates_MCY).to_i %> 人民币"><%= r[:sum_of_loan_interests] %></a></td>
+            <td><a href="#" title="每月所收取的租金(人民币)"><%= r[:month_rent] %></a></td>
+            <td><a href="#" title="每月所收取的租金(人民币)"><%= r[:month_rent]*12.to_i %></a></td>
+            <td><a href="#" title="增值利率"><%= sprintf("%0.02f",r[:added_rate]) %> %</a></td>
+            <td><a href="#" title="还清年份"><%= r[:end_year_of_loan_total] %></a></td>
+            <td><a href="#" title="退休年份(<%= r[:retire_year].to_i - 1974 %>歲退休)"><%= r[:retire_year] %></a></td>
+            <td><a href="#" title="退休后到领保险金，平均每月可用：<%= (r[:expenses_after_retire]*@exchange_rates_MCY).to_i %> 新台币"><%= r[:expenses_after_retire] %></a></td>
+            <td><a href="#" title="存款平均利息：<%=@save_rate%>%，退休前共可存款：<%=r[:save_money_before_retire]%> 新台币，退休当年房租：<%=r[:house_rent_at_retire_year]%> 人民币/年 <%=r[:house_rent_at_retire_year]/12.to_i%> 人民币/月"><%= r[:balance_save_until_save_year] %></a></td>
+            <td><a href="#" title="领保险金时的房产总值：<%= r[:house_value_to_end_year] %> 新台币，共增值<%= sprintf("%0.02f",r[:house_value_to_end_year]/r[:house_value].to_f) %>倍"><%= number_to_currency(r[:house_value_to_end_year]/@exchange_rates_MCY/10000, :unit => '', :precision => 2) %></a></td>
+            <td><a href="#" title="领保险金时，若房子出租则月入：<%= r[:month_income_to_end_year_ntd] %> 新台币"><%= (r[:month_income_to_end_year_ntd]/@exchange_rates_MCY).to_i %></a></td>
+            <td><a href="#" title="领保险金时，若房子自住则月入：<%= r[:month_income_to_end_year_ntd_self_live] %> 新台币"><%= (r[:month_income_to_end_year_ntd_self_live]/@exchange_rates_MCY).to_i %></a></td>
+            <td><a href="#" title="领保险金时，若房子卖出放定存(利息<%=@save_rate%>%)则月入：<%= r[:month_income_to_end_year_ntd_sell_house] %> 新台币"><%= (r[:month_income_to_end_year_ntd_sell_house]/@exchange_rates_MCY).to_i %></a></td>
+         </tr>
+      <% end %>
+   </table>

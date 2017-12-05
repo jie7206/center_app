@@ -1,0 +1,101 @@
+<%
+# 决定上一句/下一句的index
+if @list_collect
+  pre_index = @verses_index[check_index_boundary(@verses_index.index(@index.to_s)-1,@verses_index.size)]
+  this_index = @verses_index.index(@index.to_s)
+  next_index = @verses_index[check_index_boundary(@verses_index.index(@index.to_s)+1,@verses_index.size)]
+  @verse = @verses[this_index]
+else
+  pre_index = @index-1
+  next_index = @index+1
+end
+
+# 定义字体样式
+case @verse.length
+  when 1..100
+    verse_words_size = 5.8
+    verse_words_line_height = 2.0
+  when 101..200
+    verse_words_size = 4.5
+    verse_words_line_height = 1.6
+  when 201..300
+    verse_words_size = 3.9
+    verse_words_line_height = 1.5
+  when 301..400
+    verse_words_size = 3.6
+    verse_words_line_height = 1.4
+  when 401..500
+    verse_words_size = 3.2
+    verse_words_line_height = 1.3
+  when 501..600
+    verse_words_size = 3.0
+    verse_words_line_height = 1.35
+  when 601..700
+    verse_words_size = 2.7
+    verse_words_line_height = 1.4
+  when 701..800
+    verse_words_size = 2.55
+    verse_words_line_height = 1.35
+  when 800..900
+    verse_words_size = 2.5
+    verse_words_line_height = 1.25
+  when 901..1000
+    verse_words_size = 2.45
+    verse_words_line_height = 1.28
+  when 1001..1100
+    verse_words_size = 2.4
+    verse_words_line_height = 1.22
+  when 1101..1200
+    verse_words_size = 2.32
+    verse_words_line_height = 1.2
+  when 1201..1400
+    verse_words_size = 2.1
+    verse_words_line_height = 1.2    
+  when 1401..2000
+    verse_words_size = 2.0
+    verse_words_line_height = 1.0
+end
+# 修正按下 BACK 的错误
+back_i = nil            
+%>
+<style>
+h2 {
+  color: #f8d56a;
+  font-size:5em;
+  font-family: "楷体";
+  text-align: center;
+  margin-top: 0.8em;
+  margin-bottom: 1em;
+}
+.verse_words {
+  font-size:<%= verse_words_size %>em;
+  font-family: "楷体";
+  width: 1000px;
+  text-align: left;
+  line-height: <%= verse_words_line_height %>em;
+  margin-top: 20px;
+}
+</style>
+<h2><%= @golden_verse_title %></h2>
+<table width="100%" border="0">
+  <tr>
+    <td align="center">
+      <div class="verse_words">
+        <% if @keywords %>
+          <%= @verse.gsub( @keywords, "<span style='border-bottom:2px solid #ee2b46'>#{@keywords}</span>") %>
+          <% @index = @verses_index[@index] # 修正收藏时所造成的索引错误 %>
+        <% elsif @list_collect %>
+          <%= @verse %>
+        <% else %>
+          <%= @verse %>
+          <% back_i = @index # 修正按下返回前页的错误 %>
+        <% end %>
+      </div>
+      <%= link_to '上一句', :action => :show_golden_verse_with_fix_bg, :i => pre_index, :keywords => @keywords, :list_collect => @list_collect,:for_ppt => params[:for_ppt] %><%= link_to '抽一句', :action => :show_golden_verse_with_fix_bg, :keywords => @keywords %><%= link_to '下一句', :action => :show_golden_verse_with_fix_bg, :i => next_index, :keywords => @keywords, :list_collect => @list_collect,:for_ppt => params[:for_ppt] %>
+      <%= show_collect_golden_verse_link(@index,'show_golden_verse_with_fix_bg') %>
+      <%= show_delete_golden_verse_link(@index,'show_golden_verse_with_fix_bg')%>
+      <%= back_to_show_golden_verse(back_i) %>
+      <%#= show_verse_length( @verse ) %>      
+    </td>
+  </tr>
+</table>

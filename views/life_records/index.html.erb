@@ -1,0 +1,84 @@
+<h2><%= link_to '目標記錄表', '/life_records' %><%= life_links_bar %></h2>
+<div style="margin-top: -1em;margin-bottom: 0.5em;color: Brown;letter-spacing:1px;text-align: center;font-size: 1.2em;">
+	※ 人生有梦，筑梦踏实 ※</div>
+
+<% table_width = 1200 %>
+<table align="center" width="<%=table_width+10%>" style="background-color: transparent;margin-bottom:1em;">
+  <tr>
+    <td>
+        <%= life_catalog_bar_for_goal %>
+    </td>
+    <td align="right">
+      <table border="0" style="background-color: transparent;margin-right:-12px;">
+        <tr>
+          <td><div style="letter-spacing:0px;margin-right: -5px;"><%= link_to "已取得", :action => :force_complete_today %><%=@goal_completed_days%><%= link_to "天", :action => :switch_goal_minutes_mode %>　</div></td>
+          <td><%= show_life_item_id_select %></td>      
+          <td>    
+            <% form_tag( "/life_records/index", {:name => 'search_frm', :style => 'margin-top:-3px;'} ) do %>
+              <input type="text" name="key" style="height:14px;width:100px">
+              <%= image_submit_tag('icon/empty.gif', :width=> 1); %>
+            <% end %>        
+          <td>            
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<% 
+@total_minutes = @total_hours = 0.0
+@life_records.each { |life_record| @total_minutes += life_record.used_minutes }
+@total_hours = @total_minutes/60
+@total_remain_minutes ||= 0
+
+def ave_hours_str
+    result = ""
+    if @life_records.size > 1
+        day_count = day_diff(@life_records[0].rec_date, @life_records[-1].rec_date)+1
+        ave_hours = !@life_records.empty? ? sprintf('%.2f',  @total_hours/day_count).to_f : 0
+        if ave_hours > 1
+        result = params[:rdate] ? "" : "， 平均 #{ave_hours.to_s} 時/天"
+        else
+        result = params[:rdate] ? "" : "， 平均 #{(@total_minutes/day_count).to_i} 分/天"
+        end
+    end
+    result = result + "，完成目標還需#{@total_remain_minutes}分" if @total_remain_minutes > 0
+    return result
+end  
+%>
+
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse"  align="center" width="<%=table_width%>">
+  <tr class="th_row">
+    <td width="110"><%= @life_rec_start_date %></td>
+    <td width="150"><%= link_to '記錄', new_life_record_path %></td>
+    <td width="60">分鐘</td>
+    <td>共 <%= @life_records.size %> 筆，合計 <%= @total_minutes.to_i %> 分  ( 約 <%= sprintf('%.2f',  @total_hours) %> 小時<%= ave_hours_str %> )</td>
+  </tr>
+<% @life_records.each do |life_record| %>
+<tr align="center" onMouseOver="this.style.background='#EFEF88';" onMouseOut="this.style.background='#FFFFFF';">
+            <td><%= link_to life_record.rec_date, edit_life_record_path(life_record) %></td>
+            <td><%= link_to life_record.life_item.name, :action => "index", :tid => life_record.life_item %></td>
+            <td><% form_remote_tag( :url => url_for(:controller=>'life_records',:action=>'update_used_minutes',:id=>life_record.id), :html => { :id => "form_#{life_record.id}" } ) do -%> <%= text_field_tag( :used_minutes,  life_record.used_minutes, :style => 'border: 0px;text-align:right;width: 98%;font-family:Verdana;font-size:15px;', :onclick => 'this.select();' ) %> <%= image_submit_tag('icon/empty.gif', :width=> 1); %> <% end -%></td>
+            <td align="left"><%= link_to if_truncate( life_record.memo ), :action => "new", :id => life_record %></td>
+      </tr>
+<% end %>
+</table>
+
+<table border="0" align="center" width="<%=table_width+10%>" style="background-color: transparent;">
+  <tr>
+    <td><%= show_life_rec_date_select %></td>
+    <td align="right">
+        <table border="0" style="background-color: transparent;">
+            <tr>
+                <td width="100">資料起始日：</td>
+                <td width="130"><% form_remote_tag( :url => url_for(:controller=>'life_records',:action=>'update_life_rec_start_date' ), :html => { :id => "form_life_rec_start_date" } ) do -%> <%= text_field_tag( :life_rec_start_date,  @life_rec_start_date, :style => 'text-align:center;width: 86px;font-family:Verdana;font-size:13px;' ) %> <%= image_submit_tag('icon/empty.gif', :width=> 1); %> <% end -%></td>
+                <!--<td width="120">每日時間目標：</td>
+                <td width="40"><% form_remote_tag( :url => url_for(:controller=>'life_records',:action=>'update_life_rec_goal_minutes' ), :html => { :id => "form_life_rec_goal_minutes" } ) do -%> <%= text_field_tag( :life_rec_goal_minutes,  @life_rec_goal_minutes, :style => 'text-align:center;width: 30px;font-family:Verdana;font-size:13px;', :onclick => 'this.select()' ) %> <%= image_submit_tag('icon/empty.gif', :width=> 1); %> <% end -%></td>
+                <td width="34">分鐘</td>-->
+            </tr>
+        </table>
+    </td>
+  </tr>
+</table>
+
+<p>&nbsp;</p>

@@ -1,0 +1,1 @@
+page[:notice_msg].replace_html "資料起始日期已更新為 #{params[:life_rec_start_date]} (#{Time.now.to_s(:db)})"

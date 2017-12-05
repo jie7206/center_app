@@ -1,0 +1,53 @@
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse"  align="center" width="95%">
+  <tr class="th_row">
+    <td></td>
+    <td width="80">所屬類別</td>
+    <td>内容說明</td>
+<% # 只有生活目標設定表才显示以下栏位 %>
+<% if @life_goals.first and not @life_goals.first.is_todo and value_of('life_goals_use_time_mode').to_i > 0 %>    
+    <td width="70">開始時間</td>
+    <td width="70">結束時間</td>
+<% end %>
+    <td width="70">目標分鐘</td>
+<% if @life_goals.first and not @life_goals.first.is_todo %>    
+    <td width="70">所占比例</td>
+<% end %>    
+    <td width="70">完成幾分</td>
+    <td width="50">已完成</td>
+    <td width="60">更新日</td>
+    <td width="40">排序</td>    
+    <td width="40">刪除</td>
+  </tr>
+
+<% @life_goals.each do |life_goal| %>
+<tr onMouseOver="this.style.background='#EFEF88';" onMouseOut="this.style.background='#FFFFFF';">
+  <td>
+    <form action="/life_goals/update_life_goal_attribute/<%=life_goal.id%>"><%= text_field_tag( :new_value, life_goal.order_num, :class => 'param_quick_update_input',:style => "width:25px", :onclick => "this.select()" ) %><%= hidden_field_tag( :field_name,  'order_num' ) %><%= image_submit_tag('icon/empty.gif', :width => 1) %> </form>
+  </td>
+  <td align="center"><%= link_to life_goal.param.title, :controller => 'param_changes', :action => 'new', :param_id => life_goal.param_id, :life_goal_id => life_goal.id, :param_title => life_goal.title, :change_value => life_goal.minutes %></a></td>
+  <td><%= link_to truncate(life_goal.title, 50, ' ...'), edit_life_goal_path(life_goal), {:title => life_goal.title} %></td>
+<% # 只有生活目標設定表才显示以下栏位 %>  
+<% if @life_goals.first and not @life_goals.first.is_todo and value_of('life_goals_use_time_mode').to_i > 0 %> 
+  <td>
+  <form action="/life_goals/update_life_goal_attribute/<%=life_goal.id%>"><%= text_field_tag( :new_value, life_goal.begin_time, :class => 'param_quick_update_input',:style => "width:70px", :onclick => "this.select()" ) %><%= hidden_field_tag( :field_name,  'begin_time' ) %><%= image_submit_tag('icon/empty.gif', :width => 1) %> </form>
+  </td>
+  <td>
+  <form action="/life_goals/update_life_goal_attribute/<%=life_goal.id%>"><%= text_field_tag( :new_value, life_goal.end_time, :class => 'param_quick_update_input',:style => "width:70px", :onclick => "this.select()" ) %><%= hidden_field_tag( :field_name,  'end_time' ) %><%= image_submit_tag('icon/empty.gif', :width => 1) %> </form>
+  </td>
+<% end %>  
+  <td>
+  <form action="/life_goals/update_life_goal_attribute/<%=life_goal.id%>"><%= text_field_tag( :new_value, life_goal.minutes, :class => 'param_quick_update_input',:style => "width:70px", :onclick => "this.select()" ) %><%= hidden_field_tag( :field_name,  'minutes' ) %><%= image_submit_tag('icon/empty.gif', :width => 1) %> </form>
+  </td>
+<% if @life_goals.first and not @life_goals.first.is_todo %> 
+<% # 显示所占比例 %>
+  <td align="right"><%= life_goal.is_show ? show_percent(life_goal.minutes, @total_show_minutes, 2) : 0 %></td>
+<% end %>  
+  <td align="right"><%= life_goal.completed_minutes %></td>
+  <td align="center"><%= image_submit_tag('icon/pass_ok.png', :width => 15, :height => 12) if life_goal.is_pass %></td>
+  <td align="center"><%= life_goal.updated_at.strftime("%m-%d") if life_goal.updated_at %></td>
+  <td align="center"><%= link_to '↑', {:action => 'life_goal_order_up', :id => life_goal} %> <%= link_to '↓', {:action => 'life_goal_order_down', :id => life_goal} %></td>
+  <td align="center"><%= link_to image_tag('icon/trash.png', :width => 15, :border => 0 ), life_goal, :confirm => "你確定要刪除這筆資料?", :method => :delete %></td>
+</tr>
+<% end %>
+</table>
+<p>&nbsp;</p>

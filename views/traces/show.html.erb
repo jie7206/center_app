@@ -1,0 +1,33 @@
+<p>
+  <b>Member:</b>
+  <%=h @trace.member_id %>
+</p>
+
+<p>
+  <b>Status num:</b>
+  <%=h @trace.status_num %>
+</p>
+
+<p>
+  <b>Last class date:</b>
+  <%=h @trace.last_class_date %>
+</p>
+
+<p>
+  <b>Last class title:</b>
+  <%=h @trace.last_class_title %>
+</p>
+
+<p>
+  <b>Next class date:</b>
+  <%=h @trace.next_class_date %>
+</p>
+
+<p>
+  <b>Next class title:</b>
+  <%=h @trace.next_class_title %>
+</p>
+
+
+<%= link_to 'Edit', edit_trace_path(@trace) %> |
+<%= link_to 'Back', traces_path %>

@@ -1,0 +1,2 @@
+module SimCharactersHelper
+end

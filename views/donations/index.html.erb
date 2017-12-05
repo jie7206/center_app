@@ -1,0 +1,47 @@
+<h2><%= link_to '奉獻資料一覽表', new_donation_path %></h2>
+<%= donation_catalog_bar %>
+<% table_width = 1350 %>
+<p/>
+<table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;font-size:0.8em" align="center" width="<%=table_width%>">
+  <tr>  
+    <% recent_shiyi_donation_months = value_of('recent_shiyi_donation_months').to_i %>
+    <% shiyi_donation = get_recent_donation_data 1,recent_shiyi_donation_months %>
+    <td class='th_row' width="130"><%=recent_shiyi_donation_months%>月什一</td><td align="center"><%= shiyi_donation[:month_data] %></td>
+    <td class='th_row' width="80">月均</td><td align="right" width="80"><%= shiyi_donation[:month_ave] %> 元</td>
+    <% live_donation = get_recent_donation_data 4,recent_shiyi_donation_months %>
+    <td class='th_row' width="130"><%=recent_shiyi_donation_months%>月住宿 </td><td align="center"><%= live_donation[:month_data] %></td>
+    <td class='th_row' width="80">月均 </td><td align="right" width="80"><%= live_donation[:month_ave] %> 元</td>
+  </tr>    
+</table>   
+<p/>
+<table border="1" cellpadding="5" cellspacing="2" style="border-collapse: collapse" bordercolor="#444444" align="center" width="<%=table_width%>">
+  <tr class="th_row">
+    <td width="40">筆數</td>
+    <td width="80"><%= link_to "姓名", :order_method => "member_id" %></td>
+    <td width="110"><%= link_to "會計年月", :order_method => "accounting_date" %></td>
+    <td width="80"><%= link_to "科目", :order_method => "catalog_id" %></td>
+    <td width="60"><%= link_to "金額", :order_method => "amount" %></td>
+    <td>標題</td>
+    <td>備註</td>
+    <td width="90"><%= link_to "创建日期", :order_method => "created_at" %></td>
+    <td width="90"><%= link_to "更新日期", :order_method => "updated_at" %></td>
+  </tr>
+<% total_amount = n = 0 %>
+<% @donations.each do |donation| %>
+  <% n = n + 1 %>
+  <tr onMouseOver="this.style.background='#EFEF88';" onMouseOut="this.style.background='#FFFFFF';">
+    <td align="center"><%= n %></td>
+    <td align="center"><%= link_to donation.member.name, :action => "index", :data_field => 'member_id', :data_value => donation.member.id %></td>
+    <td align="center"><%= donation.accounting_date.strftime("%Y-%m-%d") %></td>  
+    <td align="center"><%= link_to donation_catalog_arr.rassoc(donation.catalog_id)[0], :action => "index", :data_field => 'catalog_id', :data_value => donation.catalog_id %></td>
+    <td align="right"><%= donation.amount.to_i %></td>
+    <td><%= donation.title %></td>
+    <td><%= donation.note %></td>
+    <td align="center"><%= link_to donation.created_at.to_date.to_s(:db), edit_donation_path(donation) %></td>
+    <td align="center"><%= link_to donation.updated_at.to_date.to_s(:db), edit_donation_path(donation) %></td>
+  </tr>  
+  <% total_amount = total_amount + donation.amount %>
+<% end %>
+</table>
+
+<p align="center">共計 <%= total_amount.to_i %> 元</p>

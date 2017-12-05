@@ -1,0 +1,2 @@
+module LifeItemsHelper
+end

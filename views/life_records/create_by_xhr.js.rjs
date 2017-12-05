@@ -1,0 +1,1 @@
+page[:notice_msg].replace_html "新增成功! (#{Time.now.to_s(:db)})"

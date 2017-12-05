@@ -1,0 +1,22 @@
+<% if params[:asset_item_id] %>
+
+	<table width="95%" style="background:transparent">
+		<tr>
+			<td colspan="2" align="center"><h1 style="margin-bottom:1.5em"><%= link_to '新增資產收支明細', :controller => :asset_items %><%=asset_belongs_to_link%><%=asset_item_details_link%><%=asset_item_details_catalogs_link%></h1></td>
+		</tr>
+	    <tr>
+	      <td colspan="2" align="center">
+	        <%= show_fusionCharts_div_and_js_code %><p>&nbsp;</p>
+	      </td>
+	    </tr>		
+		<tr>
+			<td valign="top" width="800"><%= render :partial => 'table' %></td>
+			<td valign="top"><%= render :partial => 'form', :locals => { :submit_title => '新增資產收支明細' } %></td>
+		</tr>
+	</table>
+
+<% else %>
+
+	<%= render :partial => 'form', :locals => { :submit_title => '新增資產收支明細' } %>
+
+<% end %>

@@ -1,0 +1,28 @@
+<p>
+  <b>Asset item:</b>
+  <%=h @asset_item_detail.asset_item_id %>
+</p>
+
+<p>
+  <b>Accounting date:</b>
+  <%=h @asset_item_detail.accounting_date %>
+</p>
+
+<p>
+  <b>Title:</b>
+  <%=h @asset_item_detail.title %>
+</p>
+
+<p>
+  <b>Change amount:</b>
+  <%=h @asset_item_detail.change_amount %>
+</p>
+
+<p>
+  <b>Balance:</b>
+  <%=h @asset_item_detail.balance %>
+</p>
+
+
+<%= link_to 'Edit', edit_asset_item_detail_path(@asset_item_detail) %> |
+<%= link_to 'Back', asset_item_details_path %>

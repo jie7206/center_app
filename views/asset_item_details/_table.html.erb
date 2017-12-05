@@ -1,0 +1,27 @@
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse"  align="center" width="90%">
+  <tr class="th_row">
+    <td>资料所属日期</td>
+  <% if !params[:asset_item_id] %>
+    <td>資產名稱</td>
+  <% end %>
+    <td>類別</td>
+    <td>標題</td>
+    <td>收支變化</td>
+    <td>資產餘額</td>
+  </tr>
+
+<% @asset_item_details.reverse.each do |asset_item_detail| %>
+<tr onMouseOver="this.style.background='#EFEF88';" onMouseOut="this.style.background='#FFFFFF';">
+    <td align="center"><%=link_to asset_item_detail.accounting_date, edit_asset_item_detail_path(asset_item_detail) %></td>
+  <% if !params[:asset_item_id] %>  
+    <td><%=h asset_item_detail.asset_item.title %></td>
+  <% end %>    
+    <td><%=h asset_item_detail.asset_item_detail_catalog.name if asset_item_detail.asset_item_detail_catalog %></td>
+    <td>
+      <%= show_asset_item_detail_note_icon(asset_item_detail) %>
+      <%=link_to asset_item_detail.title, edit_asset_item_detail_path(asset_item_detail) %></td>
+    <td align="right"><%= "+" if asset_item_detail.change_amount > 0 %><%= sprintf("%0.2f",asset_item_detail.change_amount) %></td>
+    <td align="right"><%=h asset_item_detail.balance %></td>
+</tr>
+<% end %>
+</table>

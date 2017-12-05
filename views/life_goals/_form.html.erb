@@ -1,0 +1,16 @@
+<% form_for(@life_goal) do |f| %>
+  <%= f.error_messages %>
+  <% all_rec_change_params = Param.all(:conditions=>["name like 'life_interest_%' and rec_change = ?",true],:order=>"order_num") %>
+  <p>所屬類別：<%= select("life_goal", "param_id", all_rec_change_params.collect {|p| [ p.title, p.id ]}, { :include_blank => false}) %> <%= f.check_box :is_todo %> 設為待辦事項</p>
+  <p>排序號碼：<%= f.text_field :order_num %></p>
+  <p>目標說明：<%= f.text_field :title %></p>
+  <p>開始時間：<%= f.text_field :begin_time %></p>
+  <p>結束時間：<%= f.text_field :end_time %></p>
+  <p>目標分鐘：<%= f.text_field :minutes, :onclick => "this.select()" %></p>
+  <p>資源鏈接：<%= f.text_field :resource_url %></p>
+  <p><%= f.check_box :is_pass %> 最近已經完成 &nbsp;
+     <%= f.check_box :is_show %> 在管理表中显示</p>
+  <p>最近完成日：<%= f.date_select :pass_date, :use_month_numbers => true %></p>
+  <p>完成幾分鐘：<%= f.text_field :completed_minutes, :size => 19, :onclick => "this.select()" %></p>  
+  <p><%= f.submit submit_title %>&nbsp;&nbsp;<%= button_to_function '返回前頁', "history.back();" %></p>
+<% end %>

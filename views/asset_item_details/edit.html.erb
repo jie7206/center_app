@@ -1,0 +1,5 @@
+<h1>編輯資產明细</h1>
+<%= render :partial => 'form', :locals => { :submit_title => '儲存修改' } %>
+<p align="left"><%= link_to ' 刪除這筆明细', @asset_item_detail, :confirm => "你確定要刪除這筆資料?", :method => :delete %></p>
+资料建立时间: <%= bj_time @asset_item_detail.created_at %><br/>
+资料更新时间: <%= bj_time @asset_item_detail.updated_at %></p>

@@ -1,0 +1,952 @@
+<%
+# 打印到控制台进行观察(ptc = puts to console的缩写)
+def ptc
+   puts "#{@this_date} : EDM = #{@expect_day_money} & ASM = #{@all_save_money}"
+end
+
+# 設定是否顯示當天資料(oh = output to html的缩写)
+def oh( note = '' )
+   @show_this_date = true
+   @this_date_note ||= ''
+   @this_date_note += note + "\n"
+   ptc
+end
+
+# 設定警告讯息(ww = write to warn_message的缩写)
+def ww( message = '' )
+   @warn_message << message
+   ptc
+end
+
+# 储存台幣存款变化纪录(as = add to save_money_datas的缩写)
+def as( date, amount )
+   # 比对@temp_date和date是不是一样，如果不一样则放心加入并更新@temp_date
+   if date != @temp_date
+      @save_money_datas << { :date => date, :amount => amount }
+      @temp_date = date
+   # 比对@temp_date和date如果一样，则删除最后一笔加入阵列的值再加入此笔资料
+   elsif date == @temp_date
+      @save_money_datas.delete_at(-1)
+      @save_money_datas << { :date => date, :amount => amount }
+   end      
+end
+
+# 重设定存资料
+def reset_time_save_data
+   @time_save_amount = 0
+   @time_save_begin_date = "1970-01-01".to_date
+   @time_save_end_date = "1970-01-01".to_date
+end
+
+# 计算应得到的彰银利息
+def cal_chb_interest( time_save_amount, time_save_begin_date, time_save_end_date )
+   # 计算相隔的天数
+   days_pass = (time_save_end_date - time_save_begin_date).to_i
+   # 计算超过的月数
+   over_month = days_pass/31
+   # 按照超过的月数取出相应的彰银定存利率
+   chb_save_rate = @chb_save_rates[over_month].to_f 
+   # 按照彰银定存利率和日数计算彰银定存利息
+   return (time_save_amount*(chb_save_rate/100)*(days_pass/365.0)).to_i
+end
+
+# 按照本月接案收入水平，计算下个月接案收入的增长幅度
+def cal_increase_rate_of_2nd_work( this_month_income )
+   eval_str = "case this_month_income\n"
+   start_num = 0  # ex: 0..100 --> (100+1)..200 etc
+   @increase_rate_of_2nd_work_arr.each do |r|
+      max = r.split(":")[0].to_i ; rate = r.split(":")[1].to_f/100
+      eval_str += "when #{start_num}..#{max} : return #{rate}\n"
+      start_num = max + 1
+   end
+   eval_str += "end"
+   eval eval_str
+end
+
+# 回传是否现在就退休
+def retire_now?
+   ( params[:retire_now] or params[:cal_money_expense] ) ? true : false
+end
+
+# 回传是否计算每月生活费(若现在退休)
+def cal_retire_now_day_expense?
+   params[:cal_money_expense] ? true : false
+end
+
+# 解约所有保单，回传现金价值总值，并清空保单资料，亦即所有保费应为0
+def terminate_all_china_insurances
+   total_back_money = 0
+   @china_insurance_expenses_arr.each do |ci|
+      total_back_money += ci[:terminate][Date.today.year.to_i]
+   end
+   @china_insurance_expenses_arr = []
+   return total_back_money
+end
+
+# 回传是否以输入的值计算--若现在马上退休，则每日可用多少人民币
+def input_daily_money
+   if params[:retire_now_daily_money] and params[:retire_now_daily_money].to_i > 0
+      return params[:retire_now_daily_money].to_i
+   else
+      return false
+   end
+end
+
+# 是否执行定存计划
+def do_time_save_plan?
+   # 如果退休收入包含出租收入则肯定不执行，因为规则与不包含出租收入相差太大
+   return false if params[:with_rental_income]
+   # 如果有"若现在马上退休，则每日可用多少人民币"则肯定不执行，因为定存方案还没制定
+   return false if cal_retire_now_day_expense? or retire_now?
+   # 如果没有上述情况，则按照Param的设定值来决定
+   if value_of("if_do_time_save_plan_for_cal_retire_day").to_i > 0
+      return true
+   else
+      return false
+   end
+end
+
+# 是否将每一天的计算结果输出到HTML(预设不输出)
+@output_everyday = params[:is_output_everyday] == 'true' ? true : false
+
+# 若现在马上退休，则每日可用多少人民币
+retire_now_daily_money = input_daily_money ? input_daily_money : value_of("retire_now_daily_money").to_i
+
+# 设定从何日起计算现在马上退休(如果有参数传入则以参数为准，否则以今天的日期传入)
+retire_now_date = params[:retire_now_date] ? params[:retire_now_date].to_date : Date.today
+
+# 控制是否要显示计算后的HTML表格
+@output_cal_table = params[:not_show_table] == 'true' ? false : true
+
+# 自动计算现在退休每日的生活费
+# 设定每日可用最大值
+retire_now_daily_money_max = input_daily_money ? input_daily_money : retire_now_daily_money+100
+# 暂时不做以下处理，因为自动寻找极限的方法现已不用 
+# (retire_now_daily_money..retire_now_daily_money_max).each do |expect_day_money| 
+   # 若总存款成为负数，必须跳到下一个expect_day_money重新计算
+   expect_day_money = retire_now_daily_money
+   @find_flag = false ; @expect_day_money = expect_day_money
+################################## 全域共用变数[开始] ##################################
+
+   # 需要传入的参数名：table_width, list_end_date 可不输入：with_2nd_income = true
+
+   # 出租收入
+      rental_income_date = "2017-03-18".to_date
+      rental_income_expect = value_of("rental_income_for_cal_retire_day").to_i
+
+   # 金如意還本
+      ruyi_money_back_date = []
+      2016.upto(1974+100) do |y|  # 最高计算到100岁
+         ruyi_money_back_date << "#{y}-12-18" if y % 3 == 0
+      end
+      ruyi_money_back_expect = 300000
+
+   # 太平一诺還本
+      yinuo_money_back_date = []
+      yinuo_money_back_amount = 13625 # 第一年领的钱(人民币)
+      yinuo_money_back_rate = 1.0173 # 中档红利年增率
+      2030.upto(1975+80) do |y|  # 最高计算到孟丽80岁
+         yinuo_money_back_date << { :date => "#{y}-10-29", :amount => yinuo_money_back_amount }
+         yinuo_money_back_amount = (yinuo_money_back_amount * yinuo_money_back_rate).to_i
+      end
+
+   # 彰化银行定存利率
+      chb_save_rate = value_of("chb_save_rate_for_cal_retire_day").to_f/100
+
+   # 彰化银行定存利率阵列
+      @chb_save_rates = content_of("chb_save_rate_for_cal_retire_day").split(',')    
+
+   # 彰化银行定存期间(几个月)
+      chb_save_month = value_of("chb_save_month_for_cal_retire_day").to_i
+   
+   # 仕傑的中國工商銀行活期存款
+
+      # id=7 为仕傑的中國工商銀行活期存款
+      icbc_deposit_1 = params[:icbc_deposit_1] || AssetItem.find(7).amount
+      # id=98 为孟丽的中國工商銀行收房租还贷款用
+      icbc_deposit_2 = params[:icbc_deposit_2] || AssetItem.find(98).amount
+      icbc_deposit_total = icbc_deposit_1.to_i + icbc_deposit_2.to_i
+      # 每月的1日或28日應該可以拿到工資
+      icbc_deposit_income_day = 1
+      # 每個月最多能存的錢 - 我個人生活用(含交通卡、電話卡、零花)
+      icbc_deposit_expect = value_of("month_save_for_cal_retire_day").to_i
+      # 工资存款必须修正时使用(因为有时某些支出而导致无法存足够的金额)
+      month_save_arr = value_of("month_save_arr_for_cal_retire_day").split(",")
+
+   # 若有接案收入的情况
+
+      # 若有接案收入的日期
+      work_2nd_date_start = value_of("2nd_work_date").to_date
+      # 若接案则每月的净收入从多少开始(以后每月会递增)
+      work_2nd_this_month_income = value_of("month_income_of_2nd_work").to_i
+      # 接案收入的每月增长幅度(%)，按收入递减，例如100以内30%，300以内20%，依此类推
+      @increase_rate_of_2nd_work_arr = value_of("2nd_work_month_increase_rate").split(",")
+      # 是否执行若有接案收入的情况
+      with_2nd_income ||= false  # 预设不计算接案收入
+      cal_2nd_work = ( params[:with_2nd_income] or with_2nd_income ) ? 1 : value_of("if_do_2nd_work_for_cal_retire_day").to_i
+
+   # 奉献支出
+      dedication_date = []
+      2016.upto(2020) do |y|  # 最高计算到2020
+         dedication_date << "#{y}-02-01".to_date
+         dedication_date << "#{y}-08-01".to_date
+      end
+      dedication_amount = ( 130 * value_of("exchange_rates_USD_to_MCY").to_f ).to_i
+
+   # 個人回台日期及機票費
+      back_tw_date = []
+      2017.upto(1974+60) do |y|  # 最高计算到60岁
+         back_tw_date << "#{y}-02-01".to_date # if y % 3 == 0
+      end
+      # 如果2020年起能顺利接案退休，则每半年应可自己回台一次
+      if cal_2nd_work > 0
+         2020.upto(1974+60) do |y|  # 最高计算到60岁
+            back_tw_date << "#{y}-08-01".to_date
+         end
+      end
+      back_tw_fee = 2000 # 個人回台飛機往返費用
+
+   # 內地保費
+      @china_insurance_expenses_arr = [
+         {:expire_date => "2029-12-09", :fee => 9020, :title => "太平一諾千金終身壽險", :terminate => {2016=>39800,2017=>48200,2018=>56800,2019=>66000,2020=>75000,2021=>84000,2022=>93000,2023=>102000}},
+         {:expire_date => "2039-10-15", :fee => 1936,:title => "太平福禄双至终身寿险", :terminate => {2016=>3520,2017=>4400,2018=>5360,2019=>6320,2020=>8200,2021=>10000,2022=>11900,2023=>13000}},
+         {:expire_date => "2039-10-15", :fee => 672,:title => "太平附加真爱提前给付重大疾病保险", :terminate => {2016=>1120,2017=>1440,2018=>1680,2019=>2000,2020=>2600,2021=>3200,2022=>3800,2023=>4400}},
+         {:expire_date => "2024-12-09", :fee => 2123,:title => "太平狀元附加大學教育年金保險", :terminate => {2016=>11880,2017=>14150,2018=>16550,2019=>19080,2020=>21100,2021=>23200,2022=>25300,2023=>27400}},
+         {:expire_date => "2024-12-09", :fee => 512,:title => "太平陽光天使少兒兩全保險", :terminate => {2016=>2320,2017=>2770,2018=>3240,2019=>3730,2020=>4230,2021=>4730,2022=>5230,2023=>5730}},
+         {:expire_date => "2024-12-09", :fee => 67,:title => "太平附加陽光天使少兒重大疾病保險", :terminate => {2016=>30,2017=>50,2018=>70,2019=>100,2020=>150,2021=>200,2022=>250,2023=>300}},
+         {:expire_date => "2024-12-09", :fee => 68.6,:title => "太平真愛附加豁免保險費定期壽險", :terminate => {2016=>0,2017=>0,2018=>0,2019=>0,2020=>0,2021=>0,2022=>0,2023=>0}}]
+
+   # 在台保費
+      @taiwan_insurance_expenses_arr = [
+         {:expire_date => "2018-03-11", :fee => 23412, :title => "新光人壽健康久久終身醫療健康保險"},
+         {:expire_date => "2039-12-18", :fee => 1,:title => "金如意年繳附約保費"}, #1039
+         {:expire_date => "2039-12-28", :fee => 1,:title => "新防癌終身年繳附約保費"}]  #1928
+
+   # 依安全退休试算表得出的定存计划Hash
+   time_save_plan_arr = []
+   value_of("time_deposit_plan_for_cal_retire_day").split(', ').each do |s|
+      time_save_plan_arr << eval(s)
+   end
+
+   # 定存金额的值
+   @time_save_amount = 0
+
+   # 定存的开始日
+   @time_save_begin_date = "1970-01-01".to_date
+
+   # 定存的到期日
+   @time_save_end_date = "1970-01-01".to_date
+
+   # 定存利息的总值
+   @total_time_save_interest = 0
+
+   # 是否列出每一天的资料
+   show_everyday_data = value_of("if_show_everyday_for_cal_retire_day").to_i
+
+   # 計算退休收入是否包含出租收入
+   cal_retire_with_rental_income = ( params[:with_rental_income] or params[:with_2nd_income] or with_2nd_income ) ? 1 : value_of("cal_retire_date_with_rental_income").to_i
+
+   # 新光貸款本金
+
+      # id=95 为新光人寿保单贷款本金
+      xinguang_loan = AssetItem.find(95) if !params[:xinguang_loan_amount]
+      # 新光人寿保单贷款本金
+      xinguang_loan_amount = params[:xinguang_loan_amount] ? params[:xinguang_loan_amount].to_i : xinguang_loan.amount.to_i
+      # 年利率
+      xinguang_loan_interest_rate = params[:xinguang_loan_interest_rate] ? params[:xinguang_loan_interest_rate].to_f : xinguang_loan.loan_interest_rate
+      # 利息起算日
+      xinguang_loan_begin_date = params[:xinguang_loan_begin_date] ? params[:xinguang_loan_begin_date].to_date : xinguang_loan.loan_begin_date
+      # 新光贷款只还利息不还本金
+      repay_xinguang_interest_only = false
+
+   # 太平貸款本金
+
+      # id=96 为中国太平人寿保单贷款本金
+      taiping_loan = AssetItem.find(96) if !params[:taiping_loan_amount]
+      # 中国太平人寿保单贷款本金
+      taiping_loan_amount = params[:taiping_loan_amount] ? params[:taiping_loan_amount].to_i : taiping_loan.amount.to_i
+      # 年利率
+      taiping_loan_interest_rate = params[:taiping_loan_interest_rate] ? params[:taiping_loan_interest_rate].to_f : taiping_loan.loan_interest_rate
+      # 利息起算日
+      taiping_loan_begin_date = params[:taiping_loan_begin_date] ? params[:taiping_loan_begin_date].to_date : taiping_loan.loan_begin_date
+
+   # 红树湾物业费
+      house_manage_fee_date = "2017-01-15".to_date 
+      house_manage_fee_amount = 1769
+
+   # 红树湾供暖费
+      house_heating_fee_date = "2016-10-15".to_date  
+      house_heating_fee_amount = 1379 
+
+   # 台幣存款
+      save_money = 0
+
+   # 還貸手续费及汇差成本(人民幣)
+      bank_cost = value_of("bank_cost_for_cal_retire_day").to_i
+
+   # 台幣存款占总存款的比例(0.6表示60%)
+      save_money_percent = value_of("save_money_percent_for_cal_retire_day").to_f
+
+   # 工行存款超过多少钱则自动还贷(人民幣)
+      min_repay_money = value_of("min_repay_money_for_cal_retire_day").to_i
+
+   # 取出人民幣汇率
+      rmb_rate = value_of("exchange_rates_MCY").to_f
+
+   # 在还没有还清新光贷款以前，每次交多少人民幣以偿还太平贷款
+      repay_taiping_before_xinguang_finish = 1000
+
+   # 应该还爸妈的钱(新台幣)
+      parent_money = value_of("parent_money_for_cal_retire_day").to_i
+
+   # 開始領退休金的日期  
+      begin_insurance_back_date = value_of("begin_insurance_back").to_date
+
+   # 出租退休的日期
+      retire_date_with_rental_income = value_of("retire_date_with_rental_income").to_date
+
+   # 显示计算日数的日期
+      show_count_down_date = begin_insurance_back_date # || retire_date_with_rental_income
+
+   # 領退休金前，每日期望能用多少錢(新台幣)
+      expect_day_money_before_insurance_back = (value_of("retire_daily_money").to_f*rmb_rate).to_i
+   
+   # 期望的退休日期(在那之后，停止工资及出租收入，按参数分以下多种情况)
+
+      # 如果没有传入任何参数，则显示自住退休的期望的退休日期(retire_date)
+      expect_retire_date = value_of("retire_date").to_date
+      # 如果有传入出租退休参数()，则显示出租退休的期望的退休日期(retire_date_with_rental_income)
+      expect_retire_date = retire_date_with_rental_income if params[:with_rental_income]
+      # 如果有传入接案退休参数()，则显示接案退休的期望的退休日期(retire_date_with_2nd_income)
+      expect_retire_date = value_of("retire_date_with_2nd_income").to_date if params[:with_2nd_income]
+
+   # 存款总值必须至少能支付几个月的生活费
+      min_month_for_save_money = value_of("min_month_for_save_money").to_i
+   
+   # 今天的日期
+      today = params[:retire_now_date] ? params[:retire_now_date].to_date : Date.today
+
+   # 警告讯息
+      @warn_message = []
+
+   # 储存台幣存款变化纪录
+      @save_money_datas = []
+
+   # 储存台幣存款变化纪录(避免单日多笔纪录)
+      @temp_date = "1970-01-01".to_date
+
+   # 显示计算每月能用多少钱的结果(如果现在立刻退休)
+   @retire_now_day_expense = 0
+
+################################## 全域共用变数[结束] ##################################  
+%>
+<% if @output_cal_table %><%# 如果是计算每月能用多少钱，则看参数决定是否输出HTML %>
+   <table width="<%=table_width%>" align="center" cellspacing="0" cellpadding="5" style="background-color:#FFFFFF;border:1px solid">
+  <tr style="background-color:#f7dcb4;text-align:center">
+     <% if !input_daily_money and !retire_now? %>
+                        <th><a href="#" title="距離 <%= show_count_down_date.to_s(:db) %> 日數">距領日數</a></th>
+                        <% end %>
+                        <th><a href="#" title="">日期</a></th>
+                        <th><a href="#" title="新台幣">新光利息</a></th>
+                        <th><a href="#" title="新台幣">新光本金</a></th>  
+                        <th><a href="#" title="人民幣">太平利息</a></th>
+                        <th><a href="#" title="人民幣">太平本金</a></th>   
+                        <th><a href="#" title="人民幣">內地保費</a></th>
+                        <th><a href="#" title="新台幣">在台保費</a></th>
+                        <th><a href="#" title="人民幣">物業供暖</a></th>
+                        <th><a href="#" title="人民幣">奉獻支出</a></th>
+                        <th><a href="#" title="人民幣">接案收入</a></th>
+                        <th><a href="#" title="人民幣">出租收入</a></th>
+                        <th><a href="#" title="新台幣">如意還本</a></th>
+                        <th><a href="#" title="人民幣">工行存款</a></th>
+                        <th><a href="#" title="新台幣">台幣存款</a></th>
+                        <!--th><a href="#" title="新台幣">台幣定存</a></th-->
+                        <th><a href="#" title="新台幣">未繳保費</a></th>
+                        <th><a href="#" title="新台幣">存款總值</a></th>
+  </tr>
+   <% end %><%# 如果是计算每月能用多少钱，则看参数决定是否输出HTML %>
+      <% (0..(list_end_date-today)).each do |n|
+
+      ################################## 回圈内共用变数 ######################################
+
+      # 是否将这一日的资料显示出来
+      @show_this_date = show_everyday_data > 0 ? true : false
+      # 这一日的操作说明
+      @this_date_note = ''
+      # 进行计算的这一日
+      this_date = today + n ; @this_date = this_date
+      # 計算距離領錢日數
+      days_diff_until_show_count_down_date = show_count_down_date - this_date      
+      # 是否显示還貸成本
+      show_bank_cost = false
+      # 是否显示还爸妈的钱
+      show_parent_money = false
+      # 出租红树湾的收入
+      rental_income_amount = 0
+      # 红树湾的物业供暖费
+      house_fee = 0
+      # 内地保费
+      china_insurance_expenses = 0
+      # 在台保费
+      taiwan_insurance_expenses = 0
+      # 金如意還本
+      ruyi_money_back_amount = 0
+      # 倘若当日在期望的退休日之后，每日期望生活费用的注解输出
+      expect_day_money_before_insurance_back_note = ""
+      # 为了将奉獻支出显示在表格上
+      show_dedication_amount = 0
+      # 为了将接案收入显示在表格上
+      show_work_2nd_this_month_income = 0
+
+   ################################## 处理现在就退休 ######################################
+
+         # 如果现在就退休
+         if retire_now? and this_date == retire_now_date
+            # 如果要解约太平
+            if params[:destroy_taiping] == 'true'
+               # 如果还有太平贷款
+               if taiping_loan_amount > 0
+                  # 把所有太平的保单解约存入我的工商銀行并结清所有太平的保单贷款(本金+利息)
+                  money_back = terminate_all_china_insurances
+                  taiping_day_interest = ((taiping_loan_amount * (taiping_loan_interest_rate/100.0) / 365) * day_diff( taiping_loan_begin_date, this_date )).to_i
+                  icbc_deposit_total += money_back - taiping_loan_amount - taiping_day_interest
+                  oh "得到太平解约金 #{money_back} RMB"
+                  oh "偿还太平贷款本金 #{taiping_loan_amount} RMB"
+                  oh "偿还太平贷款利息 #{taiping_day_interest} RMB"
+                  # 太平的保单贷款本金归0
+                  taiping_loan_amount = 0
+               # 如果已经还清太平贷款
+               else
+                  # 把所有太平的保单解约存入我的工商銀行
+                  money_back = terminate_all_china_insurances
+                  icbc_deposit_total += money_back
+                  oh "得到太平解约金 #{money_back} RMB"
+               end
+               # 清空内地保单资料，即保费为0
+               @china_insurance_expenses_arr = []
+               oh "清空内地保单资料"
+            end
+            # 清空在台保单资料，即保费为0
+            # @taiwan_insurance_expenses_arr = []
+            # oh "清空在台保单资料"
+            # 预期退休日改为今天
+            expect_retire_date = this_date
+            oh "期望退休日改为 #{expect_retire_date}"
+            # 新光贷款改为只还利息不还本金
+            repay_xinguang_interest_only = true
+            # 修改領退休金前，每日期望能用多少錢(新台幣)
+            expect_day_money_before_insurance_back = cal_retire_now_day_expense? ? (expect_day_money*rmb_rate).to_i : (retire_now_daily_money*rmb_rate).to_i
+         end
+         # 自己住节省房租且自由自在(0) or 以出租的收入补贴生活费(1)
+         cal_retire_with_rental_income = params[:with_rental_income] == 'true' ? 1 : 0
+
+   ################################## 处理贷款讯息 ##############################################
+
+      # [1.新光貸款利息] = 每日利息 * 已经经过的天数
+      xinguang_day_interest = ((xinguang_loan_amount * (xinguang_loan_interest_rate/100.0) / 365) * day_diff( xinguang_loan_begin_date, this_date )).to_i
+      
+      # [2.太平貸款利息] = 每日利息 * 已经经过的天数
+      taiping_day_interest = ((taiping_loan_amount * (taiping_loan_interest_rate/100.0) / 365) * day_diff( taiping_loan_begin_date, this_date )).to_i
+
+   ################################## 处理保费讯息 ##############################################
+
+      # [1.内地保费] 依据阵列逐一加总
+      @china_insurance_expenses_arr.each do |item|
+         pay_date = item[:expire_date].to_date
+         expire_year = pay_date.year
+         if this_date.year <= expire_year and (this_date.month == pay_date.month and this_date.day == pay_date.day)
+            china_insurance_expenses += item[:fee].to_i
+         end
+      end
+
+      # [2.在台保费] 依据阵列逐一加总
+      @taiwan_insurance_expenses_arr.each do |item|
+         pay_date = item[:expire_date].to_date
+         expire_year = pay_date.year
+         if this_date.year <= expire_year and (this_date.month == pay_date.month and this_date.day == pay_date.day)
+            taiwan_insurance_expenses += item[:fee].to_i
+         end
+      end
+
+   ################################## 处理出租收入讯息 ##########################################
+
+      # [出租收入] 出租红树湾的收入
+      # 依計算退休收入是否包含出租收入来计算
+      if cal_retire_with_rental_income > 0
+         # 要计算：只要日期对通通加入
+         rental_income_amount = rental_income_expect if this_date.month == rental_income_date.month and this_date.day == rental_income_date.day
+      else
+         # 不要计算：超过期望的退休日期则不加入
+         rental_income_amount = rental_income_expect if this_date <= expect_retire_date and this_date.month == rental_income_date.month and this_date.day == rental_income_date.day
+      end
+
+   ################################## 处理物业供暖讯息 ##########################################
+
+      # [1.物业费]
+      if this_date.month == house_manage_fee_date.month and this_date.day == house_manage_fee_date.day
+         house_fee += house_manage_fee_amount
+         oh "交物業费 #{house_manage_fee_amount} RMB"
+      end
+
+      # [2.供暖费]
+      if this_date.month == house_heating_fee_date.month and this_date.day == house_heating_fee_date.day
+         house_fee += house_heating_fee_amount
+         oh "交供暖费 #{house_heating_fee_amount} RMB"
+      end
+
+   ################################## 处理银行存款讯息 ##########################################
+
+      # 【A.处理收入的加总】
+
+         # [1-1.工資剩余收入] 倘若当日在期望的退休日之前，则加上每月應該可以拿到工資存款于工行
+         if this_date <= expect_retire_date and this_date.day == icbc_deposit_income_day
+            # 查看有无当日工资存款的修正资料(因为有时某些支出而导致无法存足够的金额)
+            already_save_with_fix = false
+            month_save_arr.each do |d|
+               s = d.split(":")[0]
+               fix_date = (s[0,4]+"-"+s[4,2]+"-"+s[6,2]).to_date ; fix_amount = d.split(":")[1].to_i
+               # 如果有修正资料，则以修正的金额加入存款于工行
+               if this_date == fix_date
+                  icbc_deposit_total += fix_amount
+                  oh "修正工資存入 #{fix_amount} RMB"
+                  already_save_with_fix = true
+                  break
+               end
+            end
+            # 如果没有修正资料，则以每月應該可以拿到工資存款于工行
+            if not already_save_with_fix
+                icbc_deposit_total += icbc_deposit_expect
+               oh "工資剩余存入 #{icbc_deposit_expect} RMB"
+            end
+         end
+
+         # [1-2.接案工作收入]
+         # 先检查是否执行若有接案收入的情况
+         if cal_2nd_work > 0
+            # 倘若当日在領退休金前之前且在接案日期之后，则加上每月接案收入于工行
+            if this_date <= begin_insurance_back_date and this_date >= work_2nd_date_start and this_date.day == icbc_deposit_income_day
+               icbc_deposit_total += work_2nd_this_month_income
+               show_work_2nd_this_month_income = work_2nd_this_month_income # 为了显示在表格上
+               oh "接案工作收入 #{work_2nd_this_month_income} RMB"
+               # 如果没有大于接案退休的日期，则计算下个月的接案理想收入
+               if this_date < expect_retire_date
+                  work_2nd_this_month_income = (work_2nd_this_month_income*(1+cal_increase_rate_of_2nd_work(work_2nd_this_month_income))).to_i
+               end
+            end
+         end
+
+         # [2.出租收入] 倘若有出租收入，则加入工行存款以便还款
+         if rental_income_amount > 0
+            icbc_deposit_total += rental_income_amount
+            oh "出租收入 #{rental_income_amount} RMB"
+         end
+
+         # [3.年金收入]
+
+            # 3-1) 金如意還本
+            ruyi_money_back_date.each do |d|
+               if this_date == d.to_date
+                  # 将当天该领的钱存入台幣存款
+                  save_money += ruyi_money_back_expect
+                  as this_date, save_money
+                  # 显示在当天的表格里
+                  ruyi_money_back_amount = ruyi_money_back_expect
+                  oh "金如意還本 #{ruyi_money_back_expect} NTD"
+               end
+            end
+
+            # 3-2) 太平一诺還本
+            if !params[:destroy_taiping] == 'true'
+               yinuo_money_back_date.each do |d|
+                  if this_date == d[:date].to_date
+                     # 将当天该领的钱存入工行存款
+                     icbc_deposit_total += d[:amount]
+                     oh "太平一诺還本 #{d[:amount]} RMB"
+                  end
+               end
+            end
+
+         # [4.定存利息收入]
+
+            # 察看是否有定存金额，如果有，察看到期日是否为今天
+            if @time_save_amount > 0 and @time_save_end_date == this_date
+               # 计算得到的利息
+               chb_interest = cal_chb_interest(@time_save_amount, @time_save_begin_date, this_date)
+               # 将本金和利息收入存入台幣存款
+               save_money += @time_save_amount + chb_interest
+               # 计算所有利息的总值
+               @total_time_save_interest += chb_interest
+               oh "从彰银解除定存 #{@time_save_amount} 得到利息 #{chb_interest} NTD"
+               reset_time_save_data
+            end
+
+      # 【B.处理费用的扣除】
+
+         # [1.生活费用] 倘若当日在期望的退休日之后，则减去每日的期望生活费用
+         if this_date > expect_retire_date
+            if icbc_deposit_total > 0
+               icbc_deposit_total -= (expect_day_money_before_insurance_back/rmb_rate).to_i
+            else
+               save_money -= expect_day_money_before_insurance_back
+               as this_date, save_money
+            end
+            expect_day_money_before_insurance_back_note = "\n每日花费：#{expect_day_money_before_insurance_back}新台幣"
+         end
+
+         # [2.保费费用]
+
+            # 2-1) 缴交内地保费
+            if china_insurance_expenses > 0
+               icbc_deposit_total -= china_insurance_expenses
+               oh "缴交内地保费 #{china_insurance_expenses} RMB"
+            end
+
+            # 2-2) 缴交在台保费
+            if taiwan_insurance_expenses > 0
+
+               # 2-2-1) 如果有台幣存款，则以台幣存款缴交在台保费
+               if save_money > taiwan_insurance_expenses
+                  save_money -= taiwan_insurance_expenses
+                  as this_date, save_money
+                  oh "缴交在台保费 #{taiwan_insurance_expenses} NTD"
+               # 2-2-2) 如果没有台幣存款，则以新光银行贷款缴交在台保费
+               else
+                  xinguang_loan_amount += (taiwan_insurance_expenses + xinguang_day_interest)
+                  xinguang_loan_begin_date = this_date
+                  oh "以新光贷款缴交在台保费 #{taiwan_insurance_expenses} NTD"
+               end
+               
+
+            end
+
+         # [3.物業费用] 物業供暖扣费
+         if house_fee > 0
+            icbc_deposit_total -= house_fee
+         end
+
+         # [4.还贷费用] 
+
+            # 4-1) 偿还太平贷款
+
+               # 4-1-1) 在还没有还清新光贷款以前，以工行存款在每年的06-28和12-28两天缴款( taiping_day_interest > xxx 是因为要防止利息过少就还款的情形，利息过少表示才刚还几天而已，故不需要再重复执行 )
+               if taiping_day_interest > 150 and taiping_loan_amount > 0 and xinguang_loan_amount > 0 and ( (this_date.month == 6 and this_date.day == 28) or (this_date.month == 12 and this_date.day == 28) )
+                  temp_money = repay_taiping_before_xinguang_finish
+                  icbc_deposit_total -= temp_money
+                  # 偿还太平贷款利息
+                  temp_money -= taiping_day_interest
+                  # 更新还款日为当日
+                  taiping_loan_begin_date = this_date   
+                  oh "偿还太平贷款利息 #{taiping_day_interest} RMB"
+                  # 如果太平贷款本金>0，则执行偿还太平贷款本金
+                  # 偿还贷款本金的前提必须是不在试算解约退休的情况下，因此!cal_retire_now_day_expense?
+                     # 1) 当剩余金钱 < 太平贷款本金
+                     if !cal_retire_now_day_expense? and temp_money <= taiping_loan_amount
+                        taiping_loan_amount -= temp_money
+                        oh "偿还太平贷款本金 #{temp_money} RMB"
+                     end
+                     # 2) 当剩余金钱 > 太平贷款本金
+                     if !cal_retire_now_day_expense? and temp_money > taiping_loan_amount
+                        icbc_deposit_total += (temp_money - taiping_loan_amount)
+                        oh "偿还太平贷款本金 #{taiping_loan_amount} RMB"
+                        taiping_loan_amount = 0                        
+                     end
+                     
+               end
+
+               # 4-1-2) 在还清新光贷款以后，工行存款有多少还多少(但为了缴内地保费，必须是在9月前)
+               if taiping_loan_amount > 0 and !(xinguang_loan_amount > 0) and icbc_deposit_total > taiping_day_interest and this_date.month < 9 and this_date.day == icbc_deposit_income_day
+                  # 偿还太平贷款利息
+                  icbc_deposit_total -= taiping_day_interest
+                  # 更新还款日为当日
+                  taiping_loan_begin_date = this_date
+                  oh "偿还太平贷款利息 #{taiping_day_interest} RMB"
+                  # 如果太平贷款本金>0，则执行偿还太平贷款本金
+                  # 偿还贷款本金的前提必须是不在试算解约退休的情况下，因此!cal_retire_now_day_expense?
+                     # 1) 当剩余金钱 < 太平贷款本金
+                     if !cal_retire_now_day_expense? and icbc_deposit_total <= taiping_loan_amount
+                        taiping_loan_amount -= icbc_deposit_total
+                        oh "偿还太平贷款本金 #{icbc_deposit_total} RMB"
+                        icbc_deposit_total = 0                        
+                     end
+                     # 2) 当剩余金钱 > 太平贷款本金
+                     if !cal_retire_now_day_expense? and icbc_deposit_total > taiping_loan_amount
+                        icbc_deposit_total -= taiping_loan_amount
+                        oh "偿还太平贷款本金 #{taiping_loan_amount} RMB"
+                        taiping_loan_amount = 0                        
+                     end
+               end
+
+               # 4-1-3) 如果新光贷款本金<=5000，但太平贷款本金>0，则从台湾汇款还清太平贷款
+               # 偿还贷款本金的前提必须是不在试算解约退休的情况下，因此!cal_retire_now_day_expense?
+               if !cal_retire_now_day_expense? and save_money > 0 and xinguang_loan_amount <= 5000 and taiping_loan_amount > 0
+                  # 如果台幣存款 > 太平贷款本利和才会执行
+                  if save_money > (taiping_loan_amount + taiping_day_interest)
+                     save_money -= ((taiping_loan_amount + taiping_day_interest + bank_cost)*rmb_rate).to_i
+                     as this_date, save_money
+                     show_bank_cost = true
+                     oh "偿还太平贷款利息 #{taiping_day_interest} RMB"
+                     oh "偿还太平贷款本金 #{taiping_loan_amount} RMB"
+                     oh "偿还太平贷款手续费 #{bank_cost} RMB"
+                     taiping_loan_amount = 0
+                  end
+               end
+
+            # 4-2) 偿还新光贷款(本金+利息)
+
+               # 4-2-1) 以台幣存款还款 两种情况：1. 金如意入账 2.缴交附加险保费             
+               if xinguang_loan_amount > 0 and save_money > 0 and repay_xinguang_interest_only != true  # 不是只偿还利息(只偿还利息应用在马上退休的情况)
+
+                  # 偿还新光贷款利息
+                  save_money -= xinguang_day_interest
+                  as this_date, save_money
+                  # 更新还款日为当日
+                  xinguang_loan_begin_date = this_date
+                  oh "偿还新光贷款利息 #{xinguang_day_interest} NTD"
+                  # 剩余的存款用来还本金
+
+                     # 1) 当存款 < 新光贷款本金
+                     if save_money <= xinguang_loan_amount
+                        xinguang_loan_amount -= save_money
+                        oh "偿还新光贷款本金 #{save_money} NTD"
+                        save_money = 0
+                        as this_date, save_money                        
+                     end
+                     # 2) 当存款 > 新光贷款本金
+                     if save_money > xinguang_loan_amount
+                        save_money -= xinguang_loan_amount
+                        as this_date, save_money
+                        oh "偿还新光贷款本金 #{xinguang_loan_amount} NTD"
+                        xinguang_loan_amount = 0                        
+                     end                     
+               end
+
+               # 4-2-2) 以工行还款
+
+                  # 为了缴内地保费，必须是在10月前
+                  if xinguang_loan_amount > 0 and this_date.month < 10 and repay_xinguang_interest_only != true  # 不是只偿还利息(只偿还利息应用在马上退休的情况)
+                     
+                     # 以工行还款，为了节省费用，必须累积到一定的数才执行还款
+                     if icbc_deposit_total >= min_repay_money
+                        # 偿还新光贷款利息 + 還貸手续费及汇差成本
+                        icbc_deposit_total -= ( xinguang_day_interest/rmb_rate + bank_cost ).to_i
+                        # 更新还款日为当日
+                        xinguang_loan_begin_date = this_date
+                        show_bank_cost = true
+                        oh "偿还新光贷款手续费 #{bank_cost} NTD"
+                        oh "偿还新光贷款利息 #{xinguang_day_interest} NTD"
+                        # 剩余的存款用来还本金
+
+                           # 1) 当存款 < 新光贷款本金
+                           if icbc_deposit_total <= xinguang_loan_amount/rmb_rate
+                              xinguang_loan_amount -= (icbc_deposit_total*rmb_rate).to_i
+                              oh "偿还新光贷款本金 #{(icbc_deposit_total*rmb_rate).to_i} NTD"
+                              icbc_deposit_total = 0                              
+                           end
+                           # 2) 当存款 > 新光贷款本金
+                           if icbc_deposit_total > xinguang_loan_amount/rmb_rate
+                              icbc_deposit_total -= (xinguang_loan_amount/rmb_rate).to_i
+                              oh "偿还新光贷款本金 #{xinguang_loan_amount} NTD"
+                              xinguang_loan_amount = 0
+                           end
+                           
+                     end
+                  end
+
+               # 4-2-3) 只还利息不还本金 (应用在马上退休的情况，并计划于每月28日还)
+               if retire_now? and this_date >= retire_now_date and xinguang_loan_amount > 0 and this_date.day == 28
+                  # 预设以台币存款来还款
+                  if save_money > xinguang_day_interest
+                     save_money -= xinguang_day_interest
+                     oh "以台幣偿还新光贷款利息 #{xinguang_day_interest} NTD"
+                  # 实在不行以工行还款
+                  elsif (icbc_deposit_total*rmb_rate).to_i > xinguang_day_interest
+                     icbc_deposit_total -= (xinguang_day_interest/rmb_rate).to_i
+                     oh "以工行偿还新光贷款利息 #{xinguang_day_interest} NTD"
+                  # 工行也不够，只好先以台币存款欠着
+                  else
+                     save_money -= xinguang_day_interest
+                     oh "以台幣偿还新光贷款利息 #{xinguang_day_interest} NTD"
+                  end
+=begin                  
+                  # 如果工行有生活费，且台币有一大笔钱，则偿还新光贷款本金
+                  pay_money = 200000
+                  if icbc_deposit_total > 2000 and save_money > pay_money
+                     xinguang_loan_amount -= pay_money
+                     save_money -= pay_money
+                     oh "偿还新光贷款本金 #{pay_money}"
+                  end
+=end                  
+                  # 更新还款日为当日
+                  xinguang_loan_begin_date = this_date
+                  
+               end
+
+            # 4-3) 偿还爸媽的錢
+
+               # 如果 台幣存款 > 爸媽的錢 则将爸媽的錢还给爸妈，但若马上退休则暂时不还
+               if !retire_now? and parent_money > 0 and save_money > parent_money
+                  save_money -= parent_money
+                  as this_date, save_money
+                  show_parent_money = true
+                  oh "偿还爸媽的錢 #{parent_money} NTD"
+               end
+
+         # [5.基元节及圣和奉献纪念奉献金] 
+
+            if dedication_date.include?(this_date)
+               icbc_deposit_total -= dedication_amount
+               show_dedication_amount = dedication_amount # 为了显示在表格上
+               oh "教會特別奉獻 #{dedication_amount} RMB"
+            end
+
+         # [6.個人回台費用] 
+
+            if back_tw_date.include?(this_date)
+               icbc_deposit_total -= back_tw_fee
+               oh "回台灣機票費 #{back_tw_fee} RMB"
+            end
+
+      # 【C.处理存款的附加信息】
+
+         # [1.存款總值] = 工行存款 + 台幣存款 + 台幣定存 (单位：新台幣)
+         all_save_money = (icbc_deposit_total*rmb_rate + save_money + @time_save_amount).to_i
+         @all_save_money = all_save_money
+            if all_save_money < 0
+               # 存款总值若为负数时，应当提出警告
+               ww "#{this_date.to_s(:db)}" 
+               # 如果是计算每月能用多少钱，存款总值若为负数则立刻结束此日期回圈，回到上一层回圈 (retire_now_daily_money..100).each do |expect_day_money|
+               if  cal_retire_now_day_expense?
+                  @find_flag = true  # 若总存款成为负数，表示已经找到了极限值，那么，正确的值即是现在的值减去1
+                  @list_end_date = this_date # 记录当天日期以供显示
+                  # break # 继续计算到最后一天，故取消break
+               end
+            end
+
+         # [2.未繳保費] 只需計算到領退休金前
+         all_insurance_remain = @china_insurance_expenses_arr.size > 0 ? cal_all_insurance_remain( this_date, begin_insurance_back_date.to_s(:db) ) : 0
+
+         # [3.存款淨值] = 存款總值 - 未繳保費
+         net_save_money = all_save_money - all_insurance_remain[:fee]
+
+      # 【D.处理工行存款负数问题】
+
+         # 如果 1) 工行存款成负数 2) 超过期望退休的日期(没有工资不会再进帐) 3) 存款總值为正 4) 台幣存款大于工行存款的负数值+手续费
+         # 所有活期存款 
+         all_flow_money = (icbc_deposit_total*rmb_rate + save_money).to_i
+         if icbc_deposit_total < 0 and this_date > expect_retire_date and all_flow_money > 0 and save_money > (icbc_deposit_total.abs + bank_cost)*rmb_rate
+               # 按照台幣存款所占的比例计算台幣存款应该给工行多少
+               # 计算手续费
+               fee = (bank_cost*rmb_rate).to_i
+               # 台幣存款应有的值(汇款手续费由台幣存款来支付)
+               new_save_money = (all_flow_money-fee) * save_money_percent
+               # 台幣存款应该给工行多少人民幣
+               save_to_icbc = (((save_money-fee) - new_save_money)/rmb_rate).to_i
+               # 工行现在应该是多少
+               icbc_deposit_total += save_to_icbc
+               # 台幣存款现在应该是多少
+               save_money = new_save_money.to_i
+               as this_date, save_money
+               oh "台幣存款给工行 #{save_to_icbc} RMB"
+               oh "台幣存款汇款手续费 #{fee} NTD"
+         end   
+
+      # 【E.处理关于定存的问题】
+
+         # 从定存计划阵列中，找出是否今天执行定存计划
+         if do_time_save_plan?
+
+            time_save_plan_arr.each do |item|
+               begin_date = item[:bdate].to_date
+               end_date = item[:edate].to_date
+               save_amount = item[:amount]
+               if this_date.year == begin_date.year and this_date.month == begin_date.month and this_date.day == begin_date.day
+                  # 执行定存计划
+                  # 本次的预计定存金额(不能超过台币存款)
+                  @time_save_amount = save_amount #(save_money/1000)*1000
+                  # 更新定存的开始日
+                  @time_save_begin_date = begin_date
+                  # 更新定存的到期日
+                  @time_save_end_date = end_date
+                  # 从台幣存款中扣除本金
+                  save_money -= @time_save_amount
+                  oh "台幣存款 #{@time_save_amount} NTD 移到彰银定存直到 #{@time_save_end_date}"
+               end
+            end
+
+            # 如果今天的日期已经超过了定存的到期日，则重设定存资料
+            if this_date > @time_save_end_date
+               reset_time_save_data
+            end
+
+         end
+
+   ############################### 以背景顏色標示信息 ##########################################
+
+      # 标示期望退休的日期
+      if this_date == expect_retire_date
+         bg_color = '#FAD1EF'
+         flag_html = '<a name="expect_retire_date"></a>'
+         oh "标示期望退休的日期(满#{((this_date-"1974-12-02".to_date).to_i/365).to_i}岁)"
+      # 存款總值超过期望的生活费
+      elsif this_date > expect_retire_date and icbc_deposit_total > 0 and save_money > 0 and all_save_money > expect_day_money_before_insurance_back*31*min_month_for_save_money
+         # 表示为浅绿色
+         bg_color = '#C2ECBA'
+         flag_html = ''         
+      else
+         bg_color = '#FFFFFF'
+         flag_html = ''
+      end
+   %>
+   <% if @output_cal_table %><%# 如果是计算每月能用多少钱，则看参数决定是否输出HTML %>
+   <% if @output_everyday or @show_this_date %>
+   <tr align="right" bgcolor="<%=bg_color%>" onMouseOver="this.style.background='#EFEF88';" onMouseOut="this.style.background='<%=bg_color%>';">
+      <% if !input_daily_money and !retire_now? %>
+      <td><%= days_diff_until_show_count_down_date %></td>
+      <% end %>
+      <td><%= flag_html %><%= link_to this_date, '#', :title => @this_date_note %></td>
+      <td><%= link_to xinguang_day_interest, '#', :title => xinguang_loan_begin_date.to_s(:db) %></td>
+      <td><%= xinguang_loan_amount %></td>
+      <td><%= link_to taiping_day_interest, '#', :title => taiping_loan_begin_date.to_s(:db) %></td>
+      <td><%= taiping_loan_amount %></td>
+      <td><%= china_insurance_expenses %></td>
+      <td><%= taiwan_insurance_expenses %></td>
+      <td><%= house_fee %></td>
+      <td><%= show_dedication_amount %></td>
+      <td><%= show_work_2nd_this_month_income %></td>
+      <td><%= rental_income_amount %></td>
+      <td><%= ruyi_money_back_amount %></td>
+      <td><%= show_bank_cost ? link_to(icbc_deposit_total,'#',:title=>"已扣除 #{bank_cost}元人民幣的還貸成本") : icbc_deposit_total %></td>
+      <td><%= save_money %></td>
+      <!--
+      <% if @time_save_begin_date > "2016-01-01".to_date %>
+         <td><%= link_to @time_save_amount, '#', :title => "#{@time_save_begin_date} ~ #{@time_save_end_date}" %></td>
+      <% else %>
+         <td>0</td>
+      <% end %>  
+      //-->
+      <td><%= link_to all_insurance_remain[:fee], '#', :title => all_insurance_remain[:note] %></td>
+      <td><%= link_to all_save_money, '#', :title => "存款淨值：#{net_save_money}#{expect_day_money_before_insurance_back_note}" %></td>
+   </tr>
+   <% end %>
+   <% end %><%# 如果是计算每月能用多少钱，则看参数决定是否输出HTML %>
+<% end %>
+<%
+# 暂时不做以下处理，因为自动寻找极限的方法现已不用
+=begin
+   # 找到了每月能用多少钱才使最终存款不为负数的值
+   if  cal_retire_now_day_expense? and @find_flag == true
+      # 若总存款成为负数，表示已经找到了极限值
+      @retire_now_day_expense =  expect_day_money
+      break 
+   elsif cal_retire_now_day_expense? and @find_flag != true
+      next  # 进行下一个expect_day_money的计算
+   else
+      concat "</table><p>"
+      break  # 暂时不跳出expect_day_money的回圈，因为想了解到底会负债多少，或许领年金后变为正
+   end
+=end   
+%>
+<% if @output_cal_table %><%# 如果是计算每月能用多少钱，则看参数决定是否输出HTML %>
+   </table><p>
+<% end %>
+<%# end # 暂时不做以下处理，因为自动寻找极限的方法现已不用%>

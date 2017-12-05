@@ -1,0 +1,52 @@
+<h2 style="margin-bottom:1.4em"><%=@sub_title%><%=@area_name%>活动紀錄表</h2>
+<%= leaders_and_peroid_and_types_bar %>
+<%#= render :partial => 'activities_report_table' %>
+
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse" bordercolor="#444444" align="center" width="95%">
+  <tr class="th_row">
+        
+    <td width="108">日期</td>
+    <td width="40">地區</td>
+    <td width="40">计数</td>
+    <td width="80">活动類別</td>
+    <td width="40">公眾</td>
+    <td width="110">姓名</td>
+    <td>課程名稱</td>
+    <td width="90">講師</td>    
+    <td width="150">備註说明</td>    
+    <td></td>
+  </tr>
+
+<%
+n = 0
+if @histories.size > 0
+  temp_class_title = @histories[0].class_title
+end
+@histories.each do |history| 
+       n = (history.class_title != temp_class_title) ? 1 : n + 1
+%>
+  <tr valign="top">
+    <td align="center"><%= link_to history.class_date, edit_history_path(history) %></td>
+    <td align="center"><%= area_arr.rassoc(history.area_id)[0] %></td>
+    <td align="center"><%= n %></td>
+    <td align="left"><%= link_to class_type_arr.rassoc(history.class_type)[0], :action => 'index_for_class_type', :class_type => history.class_type  %></td>
+    <td align="center"><%= image_submit_tag('icon/pass_ok.png', :width => 15, :height => 12) if history.is_public_class %></td>
+    <td align="center">
+        &nbsp;&nbsp;<%= link_to history.name, :action => 'member_history_list', :mid => history.member_id %><%= link_to '&nbsp;&nbsp;', :controller => 'traces', :action => 'edit', :id => get_trace_id(history.member_id) %>
+    </td>    
+    <td><%=h history.class_title %></td>
+    <td align="center"><%= link_to history.class_teacher, :action => 'teacher_history_list', :tname => history.class_teacher %></td>
+    <td>
+      <% if history.class_feel and history.class_feel.size > 1 %>
+        <%= link_to truncate(history.class_feel, 7 ), edit_history_path(history), {:title => history.class_feel} %>
+      <% end %>
+    </td>
+    <td align="center"><%= link_to image_tag('icon/trash.png', :width => 15, :border => 0, :title => '刪除這筆資料' ), history, :method => :delete %></td>
+  </tr>
+<% 
+       temp_class_title = history.class_title
+end 
+%>
+</table>
+
+<p align="center">共計 <%= @histories.size %> 筆 <%= show_student_count %></p>

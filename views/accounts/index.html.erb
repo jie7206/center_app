@@ -1,0 +1,26 @@
+<h2>帳號一覽表</h2>
+
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse"  align="center" width="800">
+
+  <tr align="center">
+    <th><%= link_to '姓名', new_account_path %></th>
+    <th>帳號</th>
+    <th>密碼</th>
+    <th>權限</th>
+    <th>擔任會計</th>
+    <th>電子郵箱</th>
+  </tr>
+
+<% @accounts.each do |account| %>
+  <tr align="center">
+    <td><%= link_to account.member.name, edit_account_path(account) %></td>
+    <td><%= account.username %></td>
+    <td><%= truncate( account.password, 1, '*****' ) %></td>
+    <td><%= roles_arr.rassoc( account.role )[0] %></td>
+    <td><%= show_check_mark( account.is_accountant ) %></td>
+    <td align="left"><%= link_to account.member.email, "mailto:#{account.member.email}" %></td>
+  </tr>
+<% end %>
+</table>
+
+<p>&nbsp;</p>

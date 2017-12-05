@@ -1,0 +1,62 @@
+<h2><%= link_to "購屋試算表", :action => "buy_house_plan" %></h2>
+
+<% form_tag '/main/cal_house_plan' do -%>
+   <table width="650" align="center" style="background-color:#dfdc8f;border:1px solid">
+   	<tr>
+   		<td colspan="2" align="center"><p/></td>
+   	</tr>
+   	<tr>
+   		<td align="right" width="35%">房产总价:</td>
+   		<td align="left"><%= text_field_tag 'house_value', '31', :onclick => 'this.select();' %> 万人民币</td>
+   	</tr>
+      <!--
+      <tr>
+         <td align="right">原始存款:</td>
+         <td align="left"><%= text_field_tag 'ori_save_money', '315000', :onclick => 'this.select();' %> 新台币</td>
+      </tr>
+      //-->
+      <tr>
+         <td align="right">贷款总额:</td>
+         <td align="left"><%= text_field_tag 'loan_total', '960000', :onclick => 'this.select();' %> 新台币</td>
+      </tr>
+      <tr>
+         <td align="right">贷款利率:</td>
+         <td align="left"><%= text_field_tag 'loan_rate', '6.5', :onclick => 'this.select();' %> %</td>
+      </tr>
+      <tr>
+         <td align="right">其他资金:</td>
+         <td align="left"><%= text_field_tag 'self_money', '60000', :onclick => 'this.select();' %> 人民币</td>
+      </tr>      
+   	<tr>
+   		<td align="right">每月存款:</td>
+   		<td align="left"><%= text_field_tag 'month_save', '2000', :onclick => 'this.select();' %> 人民币</td>
+   	</tr>
+   	<tr>
+   		<td align="right">每月出租:</td>
+   		<td align="left"><%= text_field_tag 'month_rent_begin', '1000', {:onclick => 'this.select();', :style => 'width:62px'} %> ~ <%= text_field_tag 'month_rent_end', '1100', {:onclick => 'this.select();', :style => 'width:62px'} %> 人民币&nbsp;增幅: <%= text_field_tag 'month_rent_step', '20', {:onclick => 'this.select();', :style => 'width:30px'} %> 元</td>
+   	</tr>
+   	<tr>
+   		<td align="right">增值利率:</td>
+   		<td align="left"><%= text_field_tag 'added_rate_begin', '5', {:onclick => 'this.select();', :style => 'width:62px'} %> ~ <%= text_field_tag 'added_rate_end', '7', {:onclick => 'this.select();', :style => 'width:62px'} %> % &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;增幅: <%= text_field_tag 'added_rate_step', '0.5', {:onclick => 'this.select();', :style => 'width:30px'} %> %</td>
+   	</tr>
+   	<tr>
+   		<td align="right">退休年份:</td>
+   		<td align="left"><%= text_field_tag 'retire_year_begin', '2021', {:onclick => 'this.select();', :style => 'width:62px'} %> ~ <%= text_field_tag 'retire_year_end', '2022', {:onclick => 'this.select();', :style => 'width:62px'} %> 年</td>
+   	</tr>
+   	<tr>
+   		<td align="right">退休每月保费:</td>
+   		<td align="left"><%= text_field_tag 'insurance_after_retire', '2200', :onclick => 'this.select();' %> 人民币 直到2029</td>
+   	</tr>  	  
+   	<tr>
+   		<td align="right">退休月生活费最大值:</td>
+         <td align="left"><%= text_field_tag 'expenses_after_retire_begin', '2000', {:onclick => 'this.select();', :style => 'width:62px'} %> ~ <%= text_field_tag 'expenses_after_retire_end', '3000', {:onclick => 'this.select();', :style => 'width:62px'} %> 人民币 直到2029&nbsp;增幅: <%= text_field_tag 'expenses_after_retire_step', '1000', {:onclick => 'this.select();', :style => 'width:30px'} %> 元</td>
+   	</tr>
+   	<tr>
+   		<td align="right">银行定存平均年利率:</td>
+   		<td align="left"><%= text_field_tag 'save_rate', '1.82', :onclick => 'this.select();' %> %</td>
+   	</tr>	 	
+   	<tr>
+   		<td colspan="2" align="center"><p/><%= submit_tag "开始試算" %></td>
+   	</tr>
+   </table>   
+<% end -%>

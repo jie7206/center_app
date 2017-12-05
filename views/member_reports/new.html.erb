@@ -1,0 +1,59 @@
+<h1>New member_report</h1>
+
+<% form_for(@member_report) do |f| %>
+  <%= f.error_messages %>
+
+  <p>
+    <%= f.label :area_id %><br />
+    <%= f.text_field :area_id %>
+  </p>
+  <p>
+    <%= f.label :rec_date %><br />
+    <%= f.date_select :rec_date %>
+  </p>
+  <p>
+    <%= f.label :family_count %><br />
+    <%= f.text_field :family_count %>
+  </p>
+  <p>
+    <%= f.label :student_member_count %><br />
+    <%= f.text_field :student_member_count %>
+  </p>
+  <p>
+    <%= f.label :worker_member_count %><br />
+    <%= f.text_field :worker_member_count %>
+  </p>
+  <p>
+    <%= f.label :generation2_1_count %><br />
+    <%= f.text_field :generation2_1_count %>
+  </p>
+  <p>
+    <%= f.label :generation2_2_count %><br />
+    <%= f.text_field :generation2_2_count %>
+  </p>
+  <p>
+    <%= f.label :student_new_count %><br />
+    <%= f.text_field :student_new_count %>
+  </p>
+  <p>
+    <%= f.label :worker_new_count %><br />
+    <%= f.text_field :worker_new_count %>
+  </p>
+  <p>
+    <%= f.label :blessedable_count %><br />
+    <%= f.text_field :blessedable_count %>
+  </p>
+  <p>
+    <%= f.label :leader_count %><br />
+    <%= f.text_field :leader_count %>
+  </p>
+  <p>
+    <%= f.label :staff_count %><br />
+    <%= f.text_field :staff_count %>
+  </p>
+  <p>
+    <%= f.submit 'Create' %>
+  </p>
+<% end %>
+
+<%= link_to 'Back', member_reports_path %>

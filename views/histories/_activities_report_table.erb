@@ -1,0 +1,19 @@
+<p/>
+<table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;font-size:0.8em" align="center" width="95%">
+  <tr>
+    <td width="70">資料年月</td><td align="center"><%= @act_year %> 年 <%= @act_month %> 月</td>
+    <td>大人禮拜</td><td align="right"><font title="<%=@sunday_service_note%>"><%= @sunday_service_count %> 人<%=@report_note%></font></td>
+    <td>二世禮拜</td><td align="right"><font title="<%=@sunday_service_2g_note%>"><%= @sunday_service_2g_count %> 人</font></td>
+    <td>一日靈修</td><td align="right"><font title="<%=@one_day_note%>"><%= @one_day_count %> 人</font></td>
+    <td>兩日靈修</td><td align="right"><font title="<%=@two_day_note%>"><%= @two_day_count %> 人</font></td>       
+    <td>三日靈修</td><td align="right"><font title="<%=@three_day_note%>"><%= @three_day_count %> 人</font></td>
+    <td>七日靈修</td><td align="right"><font title="<%=@seven_day_note%>"><%= @seven_day_count %> 人</font></td>    
+    <td>表格資料</td><td align="right"><%= @histories.size %> 筆</td>
+    <td>學生人數</td><td align="right"><%= @student_count %> 人</td>
+  </tr>
+  <tr>
+    <td valign="top">禮拜名單</td>
+    <td colspan="17"><%=@sunday_service_note%> <%=@sunday_service_2g_note%> <%= previous_month_bar %></td>
+  </tr>
+</table>   
+<p/>

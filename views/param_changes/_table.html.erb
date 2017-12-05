@@ -1,0 +1,22 @@
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse"  align="center" width="99%">
+  <tr class="th_row">
+    <td width="70"><%= value_of('enjoy_life_title') %></td>
+    <td width="100">所屬日期</td>
+    <td>標題</td>
+    <td width="20">變化</td>
+    <td width="50">當前</td>    
+    <td width="20"></td>
+  </tr>
+<% @sum_of_change_value = 0 # 统计变化的总分 %>
+<% @param_changes.each do |param_change| %>
+<tr onMouseOver="this.style.background='#EFEF88';" onMouseOut="this.style.background='#FFFFFF';">
+    <td align="center"><%= image_submit_tag('icon/pass_ok.png', :width => 15, :height => 12) if param_change.is_enjoy %></td>
+    <td align="center"><%=link_to param_change.rec_date, edit_param_change_path(param_change)%></td>
+    <td><a onclick="javascript:document.getElementById('param_change_title').value=document.getElementById('param_change_title').value.split('] ')[0] + '] <%=param_change.title.split("] ")[1]%>';" style="cursor:pointer;"><%= param_change.title %></a></td>
+    <td align="right"><%= "+" if param_change.change_value > 0 %><a onclick="javascript:document.getElementById('param_change_change_value').value='<%=param_change.change_value.to_i%>';" style="cursor:pointer;"><%= param_change.change_value.to_i %></a></td>
+    <% @sum_of_change_value += param_change.change_value.to_i if param_change.change_value %>
+    <td align="right"><%= param_change.value.to_i %></td>
+    <td align="center"><%= link_to image_tag('icon/trash.png', :width => 15, :border => 0 ), "/param_changes/destroy?id=#{param_change.id}&param_id=#{param_change.param_id}" %></td>
+</tr>
+<% end %>
+</table>

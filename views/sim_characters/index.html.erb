@@ -1,0 +1,19 @@
+<h2>模擬人物總覽</h2>
+<%= main_function_bar %>
+<table border="1" cellpadding="5" cellspacing="5" style="border-collapse: collapse;margin-top:10px;margin-left:60px" bordercolor="#999999" align="left">
+	<% icon_width = 80 #設置頭像大小 %>
+  <% max_num_in_row = 10 #一行最多放幾個頭像 %>
+  <% n = 0 #判斷是否換列用 %>
+  <% @sim_characters.each do |sim_character| %>
+    <% if n % max_num_in_row == 0 %>
+      <tr>
+    <% end %>    
+        <td align="center"><%= link_to image_tag("san12/#{sim_character.photo}.jpg", :width => icon_width, :onmouseout => "hiddenPic();", :onmousemove => "showPic('/images/san12/#{sim_character.photo}.jpg');"), edit_sim_character_path(sim_character) %><br/><%= sim_character.name %> (<%= show_sex( sim_character.sex ) %>) <%= link_to image_tag('icon/trash.png', :width => 10, :border => 0 ), "/sim_characters/destroy/#{sim_character.id}" %>
+        </td>
+    <% n += 1 %>
+    <% if n % max_num_in_row == 0 %>
+      </tr>
+    <% end %>    
+  <% end %>  
+</table>
+<%= show_ori_image_frame("right:40px; top:133px;") %>

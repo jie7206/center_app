@@ -1,0 +1,1 @@
+page[:notice_msg].replace_html "資料已於 #{Time.now.to_s(:db)} 更新為 #{params[:used_minutes]}"

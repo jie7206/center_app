@@ -1,0 +1,25 @@
+<h2>課程項目一覽表 <span class="link_to_history"><%= link_to "刪除所有項目", :action => :destroy_all_courses, :confirm => "你確定要刪除此筆紀錄嗎?", :method => :delete %></span></h2>
+
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse" bordercolor="#444444" align="center" width="1100">
+  <tr class="th_row">
+    <td>編號</td>
+    <td width="90">所屬階段</td>    
+    <td><%= link_to '課程名稱', new_course_path %></td>
+    <td>排序</td>
+    <td>網頁連結</td>
+  </tr>
+
+<% num =1 %>
+<% @courses.each do |course| %>
+  <tr align="center">
+    <td><%=num%>.</td>
+    <td><%= status_arr.rassoc(course.status_id)[0] %></td>
+    <td align="left"><%= link_to h(course.title), edit_course_path(course) %></td>
+    <td><%= link_to '↑', {:action => 'order_up', :id => course} %> <%= link_to '↓', {:action => 'order_down', :id => course} %></td>
+    <td align="left"><%= link_to truncate(h(course.url_link), 70), h(course.url_link), :target => 'blank' %></td>
+  </tr>
+  <% num += 1 %>
+<% end %>
+</table>
+
+<p>&nbsp;</p>

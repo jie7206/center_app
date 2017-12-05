@@ -1,0 +1,78 @@
+<h2>問題回報一覽表</h2>
+
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse" bordercolor="#444444" align="center" width="1250">
+  <tr class="th_row">
+    <th><%= link_to '發起日', new_question_path %></th>
+    <th>發起人</th>
+    <th>對象</th>
+    <th>分類</th>
+    <th>標題</th>
+    <th>說明</th>
+    <th>是否解決</th>
+  </tr>
+
+<% @questions.each do |question| %>
+<%
+    if !question.solution.empty? && question.solution.size > 5
+      td_rowspan = ' rowspan="2" '
+      show_solution = true
+    end  
+    secret_bgcolor = question.is_secret ? 'bgcolor="#F4BFD6"' : ''
+%>  
+  <tr <%=secret_bgcolor%>>
+    <td <%=td_rowspan%> valign="top" align="center"><%= link_to question.created_at.strftime('%Y-%m-%d'), edit_question_path(question) %></td>
+    <td align="center"><%=h question.member.name %></td>
+    <td align="center"><%=h question.to_name %></td>
+    <td align="center"><%=h question_catalogs.rassoc(question.catalog)[0] %></td>
+    <td><%=h question.title %></td>
+    <td><%=h question.description %></td>
+    <td width="80" align="center"><%=show_check_mark(question.is_solved)%></td>
+  </tr>
+  <% if show_solution %>  
+    <tr <%=secret_bgcolor%>><td colspan="6"><%=question.solution.sub("\n",'<br/>') %></td></tr>
+  <% end %>  
+<% end %>
+</table>
+
+<p>&nbsp;</p>
+
+<% if @private_questions && !@private_questions.empty?  %>
+  
+<h2>私人問題一覽表</h2>
+
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse" bordercolor="#444444" align="center" width="1250">
+  <tr class="th_row">
+    <th><%= link_to '發起日', new_question_path %></th>
+    <th>發起人</th>
+    <th>對象</th>
+    <th>分類</th>
+    <th>標題</th>
+    <th>說明</th>
+    <th>是否解決</th>
+  </tr>
+
+<% @private_questions.each do |question| %>
+<%
+    if !question.solution.empty? && question.solution.size > 5
+      td_rowspan = ' rowspan="2" '
+      show_solution = true
+    end  
+%>  
+  <tr>
+    <td <%=td_rowspan%> valign="top" align="center"><%= link_to question.created_at.strftime('%Y-%m-%d'), edit_question_path(question) %></td>
+    <td align="center"><%=h question.member.name %></td>
+    <td align="center"><%=h question.to_name %></td>
+    <td align="center"><%=h question_catalogs.rassoc(question.catalog)[0] %></td>
+    <td><%=h question.title %></td>
+    <td><%=h question.description %></td>
+    <td width="80" align="center"><%=show_check_mark(question.is_solved)%></td>
+  </tr>
+  <% if show_solution %>  
+    <tr><td colspan="6"><%=question.solution.sub("\n",'<br/>') %></td></tr>
+  <% end %>  
+<% end %>
+</table>
+
+<p>&nbsp;</p>
+
+<% end %>

@@ -1,0 +1,80 @@
+<p/>
+<table width="<%=table_width %>" border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;font-size:0.8em;<%= table_margin_left > 0 ? "margin-left:#{table_margin_left}px" : '' %>" align="center">
+
+  <tr>
+<% 
+      # 今天退休相关资料
+      retire_now_daily_money = value_of("retire_now_daily_money").to_i
+      retire_now_month_money = retire_now_daily_money*31.to_i
+      input_list_end_date = "2034-12-31"
+
+      # 计算已經多活几日(1996-05-28开始)
+      start_count_date = value_of("start_count_date").to_date
+
+      # 自住全休时的年纪
+      my_age_1 = ((@retire_date.to_date-"1974-12-02".to_date).to_i/365).to_i
+
+      # 在京退休的相关资料
+      retire_date = value_of("retire_date_with_rental_income").to_date
+      retire_date_diff = (retire_date-Date.today).to_i
+      my_age_2 = ((retire_date.to_date-"1974-12-02".to_date).to_i/365).to_i
+      retire_daily_money_note = content_of("retire_daily_money")
+
+      # 兼職退休的相关资料
+      retire_date_2nd = value_of("retire_date_with_2nd_income").to_date
+      start_2nd_date = value_of("2nd_work_date").to_date
+      month_income_of_2nd_work = value_of("month_income_of_2nd_work").to_i
+      my_age_3 = ((retire_date_2nd-"1974-12-02".to_date).to_i/365).to_i
+      retire_date_2nd_diff = (retire_date_2nd-Date.today).to_i
+
+      # 最快退休的相关资料
+      fast_retire_date = "2021-02-28".to_date
+      retire_date_fast_diff = (fast_retire_date-Date.today).to_i
+      retire_date_fast_birthday_diff = ((fast_retire_date-"1974-12-02".to_date).to_i/365).to_i
+
+      # 流資目標的相关资料
+      this_month_current_assets_goal = get_this_month_current_assets_goal
+%>
+
+    <td class='th_row'>已經多活</td><td align="center"><%= link_to day_diff( start_count_date, Time.now - 8.hours ), '#', {:title =>  "从#{start_count_date}开始计算", :target => "_self"} %> 天</td>
+    <td class='th_row'>退休還剩</td><td align="center"><%= link_to @retire_date_diff, '#', :title => content_of("retire_date") %> 天 (<%= sprintf("%0.1f",@retire_date_diff/365.0) %>年)</td>
+    <td class='th_row'><%= link_to '無双清静', {:controller => 'main', :action => 'set_three_control_then_free_to_today'}, {:title => "按下后归零重计，目前最高记录为#{value_of('max_record_days_for_three_control')}天，下一个目标为#{value_of('three_control_next_goal')}天(#{value_of('three_control_then_free_start_date').to_date+value_of('three_control_next_goal').to_i})，请继续加油！勿忘初衷..."} %></td><td align="center"><%= link_to add_zero( @free_life_from, 4 ), '#', :title => "#{truncate(content_of('three_control_then_free_start_date'),399,"...")}" %> 天</td>
+    <td class='th_row'>積德忘憂</td><td align="center"><%= count_of_linshijie_histories %> 次</td>  <!--
+    <td class='th_row'>在京退休</td><td align="center"><%= link_to "#{retire_date} (#{my_age_2}歲)", {:action => :cal_retire_plan, :pname => 'params_of_retire_in_beijing'}, {:title => "#{retire_date}，還剩#{retire_date_diff}天(#{sprintf("%0.1f", retire_date_diff/365.0)}年)", :target => "_blank"} %></td>
+    //-->
+    <td class='th_row'>自住退休</td><td align="center"><%= link_to "#{@retire_date} (#{my_age_1}歲)", {:action => :cal_retire_plan, :pname => 'params_of_retire'}, {:name => "view", :title => "#{@retire_date}, 還剩#{@retire_date_diff}天(#{sprintf("%0.1f", @retire_date_diff/365.0)}年), 相当于从#{(Date.today-@retire_date_diff).to_s(:db)}到现在", :target => "_blank"} %></td>    
+    <td class='th_row'>流動資產</td><td align="center"><%= link_to_current_assets %> 元 <%= show_current_assets_icon(this_month_current_assets_goal,@total_current_assets,"\n#{get_next_year_current_assets_goal}") %></td>
+
+    <!--td class='th_row'>最快退休</td><td align="center"><%#= link_to "#{fast_retire_date} (#{retire_date_fast_birthday_diff}歲)", {:action => :cal_retire_plan, :pname => 'params_of_fastest_retire_in_beijing'}, {:title => "#{content_of("params_of_fastest_retire_in_beijing")}", :target => "_blank"} %></td>
+    <!--td class='th_row'>在京半休</td><td align="center"><%#= link_to "#{retire_date_2nd} (#{my_age_3}歲)", {:action => :cal_retire_plan, :pname => 'params_of_retire_with_work2'}, {:title => "#{retire_date_2nd}，還剩#{retire_date_2nd_diff}天(#{sprintf("%0.1f", retire_date_2nd_diff/365.0)}年)\n#{content_of('params_of_retire_with_work2')}", :target => "_blank"} %></td-->
+    <!--td class='th_row'>回台半休</td><td align="center"><%#= link_to "#{retire_date_2nd} (#{my_age_3}歲)", {:action => :cal_retire_plan, :pname => 'params_of_retire_in_taiwan'}, {:title => "#{retire_date_2nd}，還剩#{retire_date_2nd_diff}天(#{sprintf("%0.1f", retire_date_2nd_diff/365.0)}年)，#{content_of('params_of_retire_in_taiwan')}", :target => "_blank"} %></td-->
+    <!--td class='th_row'><%#= link_to '親密關係', {:controller => 'main', :action => 'set_sex_life_to_today'}, :title => "按下后归零重计，目前最高记录为#{value_of('max_record_days_for_sex_life')}天" %></td><td align="right"><%#= link_to @already_free_days, '#', :title => "#{content_of('free_life_from')}" %> 天</td-->    
+    <!--td class='th_row'><%#= link_to "今天退休", {:action => :cal_retire_day, :cal_money_expense => true, :not_show_table => true, :retire_now_date => Date.today.to_s(:db), :input_list_end_date => input_list_end_date, :noexe => true}, {:title => "以下为之前计算的结果：\n#{content_of('retire_now_daily_money')}", :target => "_self"} %></td><td align="right">每月 <%#= link_to "#{retire_now_month_money}", {:action => :cal_retire_day, :retire_now => true, :input_list_end_date => input_list_end_date}, {:title => "解约所有保单，住红树湾，不还新光贷款本金而只还利息，每日花费#{retire_now_daily_money}元人民币", :target => "_blank"} %> 元</td-->
+    <!--td class='th_row'><%#= link_to '無双自律', {:controller => 'main', :action => 'set_three_control_then_free_to_today'}, {:title => "按下后归零重计，目前最高记录为#{value_of('max_record_days_for_three_control')}天，下一个目标为#{value_of('three_control_next_goal')}天(#{value_of('three_control_then_free_start_date').to_date+value_of('three_control_next_goal').to_i})，请继续加油！勿忘初衷..."} %></td><td align="right"><%#= link_to @free_life_from, '#', :title => "#{content_of('three_control_then_free_start_date')}" %> 天</td-->
+    <!--td class='th_row'>流資目標</td><td align="right"><%#= link_to this_month_current_assets_goal, '#', {:title => get_next_year_current_assets_goal} %> 元</td-->
+    <!--td class='th_row'>救急基金</td><td align="right"><%#= link_to @total_emergency_flow_assets.to_i, '#', :title => total_emer_assets_note_ntd %> 新台幣</td-->  
+  </tr>
+
+<% if @today_in_histories.size > 0 or @today_in_param_changes.size > 0 %>
+  <tr>
+  	<td align="left" colspan="16" bgcolor="#FFFFFF">
+  		<div><a href="#view" title="点我靠上以方便看图">【歷史上的今天】</a>
+  			<% if @today_in_histories.size > 0 %> 
+	  			<% @today_in_histories.each do |h| %>
+            <%= link_to "#{h.class_teacher}給#{h.name}：#{h.class_title}", {:controller => 'histories', :action => 'index_for_today'}, {:title => h.class_date, :target => "_blank"} %>&nbsp;&nbsp;
+	  			<% end %>
+  			<% end %>
+  			<% if @today_in_param_changes.size > 0 %> 
+	  			<% @today_in_param_changes.each do |p| %>
+	  				<%= link_to "#{p.title} #{p.change_value.to_i}分", {:controller => 'main', :action => 'life_list_on_day', :rec_date => p.rec_date }, {:title => p.rec_date, :target => "_blank"} %>&nbsp;&nbsp;
+	  			<% end %>
+  			<% end %>  	
+        <% if @today_images_in_folder.size > 0 %>
+          <%= show_folder_images( @today_images_in_folder, @my_photo_path ) %>
+        <% end %>        	
+  		</div>
+  	</td>
+  </tr>	
+<% end %>    
+</table>   
+<p/>

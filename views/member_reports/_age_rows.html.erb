@@ -1,0 +1,11 @@
+        <%
+          desr_index = 0
+          title_arr.each do |title| %>
+            <tr bgcolor="#dadada"><td align="center" rowspan="6"><font title="<%= "计算标准："+desr_arr[desr_index]%>"><%= title.split("_").join("<br/>") %></font></td><td align="left">學生(0~18)</td></tr>
+            <tr bgcolor="#dadada"><td align="left">青年(19~39)</td></tr>
+            <tr bgcolor="#dadada"><td align="left">成人(40~59)</td></tr>
+            <tr bgcolor="#dadada"><td align="left">60歲以上</td></tr>
+            <tr bgcolor="#d7e4bc"><td align="right">總計</td></tr>
+            <tr bgcolor="#dadada"><td align="left">大學生</td></tr>
+            <% desr_index += 1 %>
+        <% end %>            

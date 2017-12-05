@@ -1,0 +1,74 @@
+<h2><a href="./appointment">活动紀錄圖表</a>
+<!--span class="link_to_history">by</span-->
+<%# main_teachers.each do |name| %>
+<!--span class="link_to_history"><%#= link_to name, :action => 'appointment', :tname => name %></span-->
+<%# end %>
+</h2>
+
+<table border="1" cellpadding="3" cellspacing="0" style="border-collapse: collapse" bordercolor="#444444" align="center">
+<% 
+    output_html = "<tr>\n"
+    td_width = 85
+    td_height = 90
+    cols_per_row = 14  #每一列要放多少儲存格
+    date_font_size = "0.52em"  #每個儲存格日期顯示的字體大小
+    td_through_count = 1  #一邊Loop一邊增加，才能計算到底能不能被除盡
+    td_has_content_count = 0  #計算該列有多少儲存格已有內容
+    td_supply = ''  #補齊儲存格的數量以避免表格缺線難看
+
+      @dates.each do |t1|
+          content = []
+          
+          #取出只針對某個老師的紀錄
+          # if params[:tname]
+          #	conditions_str_for_trace = [ "next_class_date =? and next_class_teacher =?", t1, params[:tname] ]
+          #	conditions_str_for_history = [ "class_date =? and class_teacher =?", t1, params[:tname] ]
+          #取出只針對某個學生的紀錄
+          if params[:sid]
+          	conditions_str_for_trace = [ "next_class_date =? and member_id =?", t1, params[:sid] ]
+          	conditions_str_for_history = [ "class_date =? and member_id =?", t1, params[:sid] ]
+          else
+            conditions_str_for_trace = [ "next_class_date =?", t1 ]
+            conditions_str_for_history = [ "class_date =?", t1 ]            
+          end
+          #Activity.all( :conditions => [ "begin_date = ? and is_achievement = 'f'", t1 ] ).to_a.each do |t3|
+          #    content << "<a href='/activities/index_of_plan/#{t3.id}' class='activity_title' title='#{t3.title}'>#{truncate(t3.title,9,'..')}</a>"
+          #end        
+          Trace.all( :conditions => conditions_str_for_trace, :order => 'appointment_promise desc' ).to_a.each do |t2|
+              content << "<a href='/traces/appointment?sid=#{t2.member_id}' class='no_bg'><span class='next_class_student'>#{t2.member.name}</a></span><span class='next_class_student'><a href='/traces/#{Trace.find_by_member_id(t2.member_id).id}/edit'>&nbsp;&nbsp;</a></span>"    # + "<span class='next_class_teacher'>[#{t2.next_class_teacher}]</span>" + '<br/><span class="next_class_title_list">' + t2.next_class_title + '</span>' 
+          end
+          History.all( :conditions => conditions_str_for_history, :order => 'class_date desc' ).to_a.each do |t4|
+              content << "<a href='/traces/appointment?sid=#{t4.member_id}' class='no_bg' alt='將今天的日期特別標明1'><span class='histories_class_student'>#{t4.name}</a></span><span class='histories_class_student'><a href='/histories/index_for_member?mid=#{t4.member_id}' alt='將今天的日期特別標明2'>&nbsp;&nbsp;</a></span>"    #<a href='/histories/index_for_member?mid=#{t4.member_id}' target='_blank' class='no_bg'><span class='histories_class_teacher'>[#{t4.class_teacher}]</span></a><br/><a href='/histories/#{t4.id}/edit' class='no_bg' target='_blank'><span class='next_class_title_list'>#{t4.class_title}</span></a>"
+          end          
+          @names << content
+      end
+              
+    (0...@dates.size).each do |n|
+        d = @dates[n].to_date
+        a_name = d.strftime('%Y-%m-%d') == Time.now.strftime('%Y-%m-%d') ? '<a name="today"/>' : ''
+        m = @names[n]
+        #將今天的日期特別標明
+        if d == Date.today
+          date_bg_color = "background-color:#dd0000;color:#ffffff;"
+        else
+          date_bg_color = ""
+        end
+        count_str = m.size > 0 ? "<br/><font size='0.1em'>共#{m.size}人</font>" : ""
+        content = "<table border='0' cellpadding='3' cellspacing='0' style='border-collapse: collapse' bordercolor='#444444' width='100%'>\n<tr align='center'>\n<td class='th_row' style='font-size:#{date_font_size};#{date_bg_color}'>#{d.strftime('%Y-%m-%d')} (#{show_chinese_week(d.strftime('%w').to_i)})</td>\n</tr><tr><td valign='top'>#{m.join('<br/>')}#{count_str}</td></tr></table>"
+        td_html = "<td width='#{td_width}' height='#{td_height}' valign='top'>#{a_name}#{content}</td>\n"
+        if td_through_count % cols_per_row == 0
+            output_html = output_html + td_html + "</tr>\n<tr>\n"
+            td_has_content_count = 0
+        else
+            output_html = output_html + td_html
+            td_has_content_count += 1
+        end
+        td_through_count += 1
+    end
+    (td_has_content_count...cols_per_row).each {td_supply += "<td>&nbsp;</td>\n"} if @dates.size > cols_per_row && td_has_content_count > 0
+    output_html += td_supply + "</tr>"
+%>
+    <%=output_html%>
+</table>
+
+<p>&nbsp;</p>

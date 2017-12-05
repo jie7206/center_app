@@ -1,0 +1,5 @@
+<h1>編輯奉獻資料</h1>
+<%= render :partial => 'form', :locals => { :submit_title => '儲存修改' } %>
+<% if session[:role] == 'admin' %>  
+  <p class="del_link"><%= link_to '刪除這筆紀錄', @donation, :confirm => "你確定要刪除這筆紀錄?", :method => :delete %></p>
+<% end %>

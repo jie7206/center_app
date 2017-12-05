@@ -1,0 +1,18 @@
+<%
+    if session[:login_role] == 'admin'
+      @page_title = link_to( @center_name + '培訓課表', :action => 'week_schedule_edit' )
+    else
+      @page_title = @center_name + '培訓課表'
+    end
+%>    
+<h2><%=@page_title%></h2>
+<style>
+table { background-color: #C1DFF0; }
+th { font-weight: normal; }
+td { height: 100px; }
+.mark { background-color: #FAD1D1; }
+</style>
+  
+<%= @output_html %>
+
+<p>&nbsp;</p>

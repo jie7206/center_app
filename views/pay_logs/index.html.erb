@@ -1,0 +1,33 @@
+<h2>申請報銷一覽表</h2>
+
+<% table_width = 850 %>
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse" align="center" width="<%=table_width%>">
+
+  <tr align="center">
+    <th width="150"><%= link_to '申請人', new_pay_log_path %></th>
+    <th>項目名稱</th>
+    <th width="100">金額</th>
+    <th width="150">發款人</th>
+    <th width="150">是否已發款</th>
+  </tr>
+
+<% @pay_logs.each do |pay_log| %>
+<% # if session[:login_role] == 'admin' || Account.find_by_member_id(session[:login_mid]).is_accountant %>
+    <%  @start_calculate_bgcolor = @pay_logs_start_calculate_id == pay_log.id ? 'bgcolor="#F4BFD6"' : '' %>
+<% # end %>
+
+  <tr align="center" <%=@start_calculate_bgcolor%>>
+    <td><%=link_to pay_log.member.name, edit_pay_log_path(pay_log) %></td>
+    <td><%=h pay_log.title %></td>
+    <td><%=pay_log.amount %></td>
+    <td><%=pay_log.manager %></td>
+    <td><%=show_check_mark(pay_log.is_received)%></td>
+  </tr>
+<% end %>
+</table>
+
+<% # if session[:login_role] == 'admin' || Account.find_by_member_id(session[:login_mid]).is_accountant %>      
+      <table border="0" cellpadding="5" cellspacing="0" align="center" width="<%=table_width%>" style="background-color:transparent"><tr><td align="right">資金餘額：<%=@remain_budget%>元</td></tr></table>
+<% # end %>          
+
+<p>&nbsp;</p>

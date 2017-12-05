@@ -1,0 +1,21 @@
+<h2>图书总览<%= books_func_bar %></h2>
+
+<h2>資產明細類別總表</h2>
+
+<table border="1" cellpadding="5" cellspacing="2" style="border-collapse: collapse"  align="center" width="50%">
+  <tr class="th_row">
+    <td>书籍名稱</td>
+    <td>标题显示</td>
+    <td>文档名称</td>
+    <td></td>
+  </tr>
+
+<% @books.each do |book| %>
+  <tr>
+    <td><%= link_to book.name, :action => :set_default_then_read, :id => book %></td>
+    <td><%= link_to book.title, edit_book_path(book) %></td>
+    <td><%= book.filename %></td>
+    <td align="center"><%= link_to image_tag('icon/trash.png', :width => 15, :border => 0 ), book, :confirm => "您確定要删除此類別吗?", :method => :delete %></td>
+  </tr>
+<% end %>
+</table>

@@ -1,0 +1,1 @@
+page[:notice_msg].replace_html "每日時間目標已更新為 #{params[:life_rec_goal_minutes]} (#{Time.now.to_s(:db)})"

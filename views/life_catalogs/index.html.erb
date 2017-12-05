@@ -1,0 +1,38 @@
+<h2><%= link_to '目標分類表', '/life_catalogs' %><%= life_links_bar %></h2>
+
+<% table_width = 800 %>
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse"  align="center" width="<%=table_width%>">
+  <tr class="th_row">
+    <td><%= link_to "列序", :order_method => "line_order_num" %></td>
+    <td><%= link_to "圖序", :order_method => "order_num" %></td>
+    <td><%= link_to "名稱", new_life_catalog_path %></td>
+    <td><%= link_to "權重", :order_method => "weight", :order_desc => 1 %></td>
+    <td>統計</td>
+    <td>目標</td>
+    <td width="70">每日目標</td>
+    <td width="70"><%= link_to "累計總分", :order_method => "total_minutes", :order_desc => 1 %></td>
+    <td><%= link_to "列序", :order_method => "line_order_num" %></td>
+    <td><%= link_to "圖序", :order_method => "order_num" %></td>
+    <td>&nbsp;</td>
+  </tr>
+
+<% @life_catalogs.each do |life_catalog| %>
+  <tr align="center">      
+      <td width="50"><%= life_catalog.line_order_num %></td>  
+      <td width="50"><%= life_catalog.order_num %></td>
+      <td><%= link_to life_catalog.name, edit_life_catalog_path(life_catalog) %></td>
+      <td width="60"><% form_remote_tag( :url => url_for(:controller=>'life_catalogs',:action=>'update_weight',:id=>life_catalog), :html => { :id => "form_#{life_catalog.id}" } ) do -%> <%= text_field_tag( :weight,  life_catalog.weight, :style => 'border: 0px;text-align:right;width: 55px;font-family:Verdana;font-size:13px;', :onclick => 'this.select();' ) %> <%= image_submit_tag('icon/empty.gif', :width=> 1); %> <% end -%></td>
+      <td><%= image_tag('icon/pass_ok.png', :width => 20 ) if life_catalog.chartable %></td> 
+      <td><%= image_tag('icon/pass_ok.png', :width => 20 ) if life_catalog.goalable %></td> 
+      <td><% form_remote_tag( :url => url_for(:controller=>'life_catalogs',:action=>'update_table_field_value',:field_name=>'goal_minutes', :id=>life_catalog ), :html => { :id => "frm#{life_catalog.id}" } ) do -%>
+                                            <%= text_field_tag( :field_value,  life_catalog.goal_minutes, :style => 'border: 0px;text-align:right;width: 95%;font-family:Verdana;font-size:15px;', :onclick => 'this.select()' ) %> <%= image_submit_tag('icon/empty.gif', :width=> 1); %>
+                                      <% end -%></td>
+      <td><%= life_catalog.total_minutes %></td>
+      <td><%= link_to '↑', {:action => 'line_order_up', :id => life_catalog} %> <%= link_to '↓', {:action => 'line_order_down', :id => life_catalog} %></td>
+      <td><%= link_to '↑', {:action => 'order_up', :id => life_catalog} %> <%= link_to '↓', {:action => 'order_down', :id => life_catalog} %></td>
+      <td align="center"><%= link_to image_tag('icon/trash.png', :width => 24, :border => 0 ), { :action => 'clean_items', :id => life_catalog }, :confirm => "你確定要清空該分類下的所有目標紀錄?" %></td>
+  </tr>
+<% end %>
+</table>
+
+<p>&nbsp;</p>

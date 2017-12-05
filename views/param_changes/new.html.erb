@@ -1,0 +1,24 @@
+<% if params[:param_id] and param_title = Param.find(params[:param_id]).title %>
+
+  <table width="100%" style="background:transparent">
+    <tr>
+      <td colspan="2" align="center"><h1 style="margin-bottom:1.5em"><%= link_to param_title+'參數變化資料', :controller => :main, :action => :life_chart %></h1>
+        <%= life_catalogs_link_bar %>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" align="center">
+        <%= show_fusionCharts_div_and_js_code %>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top" width="65%"><%= render :partial => 'table' %></td>
+      <td valign="top"><%= render :partial => 'form', :locals => { :submit_title => '新增參數變化資料' } %></td>
+    </tr>
+  </table>
+
+<% else %>
+
+  <%= render :partial => 'form', :locals => { :submit_title => '新增參數變化資料' } %>
+
+<% end %>

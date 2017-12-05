@@ -1,0 +1,5 @@
+<h2><%= link_to @title, :controller => :life_goals, :action => :index %><p style="margin-top:-0.2em"><%=life_goals_link_bar%></p></h2>
+
+<%= life_interests_bar %>
+<p align="center"><%=life_goals_summary%></p>
+<%= render :partial => 'table' %>

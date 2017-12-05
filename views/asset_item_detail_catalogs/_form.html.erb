@@ -1,0 +1,11 @@
+<table align="center" style="background:transparent">
+	<tr><td>
+		<% form_for(@asset_item_detail_catalog) do |f| %>
+		  <%= f.error_messages %>
+
+		  <p>類別名稱：<%= f.text_field :name %></p>
+		  <p>排序号码：<%= f.text_field :order_num, :onclick => "this.select()" %></p>
+		  <p align="center"><%= f.submit submit_title %>&nbsp;&nbsp;<%= button_to_function '返回前頁', "history.back();" %></p>
+		<% end %>
+	</td></tr>
+</table>

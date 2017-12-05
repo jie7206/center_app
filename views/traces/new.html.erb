@@ -1,0 +1,35 @@
+<h1>New trace</h1>
+
+<% form_for(@trace) do |f| %>
+  <%= f.error_messages %>
+
+  <p>
+    <%= f.label :member_id %><br />
+    <%= f.text_field :member_id %>
+  </p>
+  <p>
+    <%= f.label :status_num %><br />
+    <%= f.text_field :status_num %>
+  </p>
+  <p>
+    <%= f.label :last_class_date %><br />
+    <%= f.date_select :last_class_date, :use_month_numbers => true %>
+  </p>
+  <p>
+    <%= f.label :last_class_title %><br />
+    <%= f.text_field :last_class_title %>
+  </p>
+  <p>
+    <%= f.label :next_class_date %><br />
+    <%= f.date_select :next_class_date, :use_month_numbers => true %>
+  </p>
+  <p>
+    <%= f.label :next_class_title %><br />
+    <%= f.text_field :next_class_title %>
+  </p>
+  <p>
+    <%= f.submit 'Create' %>
+  </p>
+<% end %>
+
+<%= link_to 'Back', traces_path %>

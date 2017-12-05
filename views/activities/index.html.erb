@@ -1,0 +1,46 @@
+<h2 style="margin-bottom:1.4em"><%= link_to "#{@sub_title}#{@area_name}活動紀錄表", new_activity_path %></h2>
+<%#= leaders_and_peroid_and_types_bar %>
+
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse" bordercolor="#444444" align="center" width="1270">
+<% image_width = 150 %>
+<% @activities.each do |activity| %>
+<% #如果人数大于多少才显示活動紀錄表 %>
+<% if activity.people_count > value_of("min_activity_people_count").to_i %>
+        <tr>
+          <td align="left">
+            <div style="text-align:left;font-size:18px;border:0px solid #f00;width:50%;margin-left:483px">
+            名稱：<%= link_to h(activity.title), edit_activity_path(activity) %><br/>
+            時間：<%=h activity.begin_date %> <%=h activity.begin_time.strftime("%H:%M") if activity.begin_time %>
+            <% if activity.begin_date != activity.end_date %>
+            ～<%=h activity.end_date %> <%=h activity.end_time.strftime("%H:%M") if activity.end_time %>
+            <% end %><br/>
+            地點：<%=h activity.place %><br/>
+            <% if !activity.manager.empty? %>
+            主持：<%=h activity.manager %><br/>
+            <% end %>
+            <% if !activity.teachers.empty? %>
+            講師：<%=h activity.teachers %><br/>
+            <% end %>
+            人數：<%=h activity.people_count %><br/>
+          </div>
+          </td>
+        </tr>
+        <% 
+          activities_images_in_folder = []
+          (activity.begin_date..activity.end_date).each do |this_date|
+            activities_images_in_folder << get_file_names("public/images/#{@activities_photo_path}", "_#{add_zero(this_date.month,2)}#{add_zero(this_date.day,2)}_")
+          end
+          activities_images_in_folder.flatten!
+        %>
+        <% if activities_images_in_folder.size > 0 %>
+        <tr>
+          <td valign="top">
+              <%= show_folder_images_in_table( activities_images_in_folder, @activities_photo_path, 300 ) %>
+          </td>
+        </tr>
+        <% end %>
+    <% end %>
+<% end %>
+</table>
+
+

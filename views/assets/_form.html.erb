@@ -1,0 +1,6 @@
+<% form_for(@asset) do |f| %>
+  <%= f.error_messages %>
+  <p>名稱：<%= f.text_field :title %></p>
+  <p>代碼：<%= f.text_field :code %></p>  
+  <p><%= f.submit submit_title %>&nbsp;&nbsp;<%= button_to_function '返回前頁', "history.back();" %></p>
+<% end %>

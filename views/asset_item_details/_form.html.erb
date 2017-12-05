@@ -1,0 +1,18 @@
+<% truncate_length = 40 %>
+<% form_for(@asset_item_detail) do |f| %>
+<%= f.error_messages %>
+  <p>所屬資產：
+  <% if params[:asset_item_id] %>
+  	<%= select("asset_item_detail", "asset_item_id", AssetItem.find(:all).collect {|a| [ truncate(a.title,truncate_length,'...'), a.id ]  }, { :include_blank => false, :selected => params[:asset_item_id].to_i }) %>
+  <% else %>
+  	<%= select("asset_item_detail", "asset_item_id", AssetItem.find(:all).collect {|a| [ truncate(a.title,truncate_length,'...'), a.id ]  }, { :include_blank => false}) %>
+  <% end %>
+  </p>
+  <p>所屬類別：<%= select("asset_item_detail", "asset_item_detail_catalog_id", AssetItemDetailCatalog.find(:all, :order => "order_num").collect {|c| [ c.name, c.id ]  }, { :include_blank => false }) %><%= add_new_asset_item_detail_catalog_link %></p>
+  <p>所屬日期：<%= f.date_select :accounting_date, :start_year => Time.now.year-10, :end_year => Time.now.year, :use_month_numbers => true %></p>  
+  <p>中文說明：<%= f.text_field :title %></p>  
+  <p>数字變化：<%= f.text_field :change_amount, :onclick => "this.select()" %></p>  
+  <p>資產餘額：<%= f.text_field :balance, :onclick => "this.select()" %></p>
+  <p>備註說明：<br/><%= f.text_area :note, :rows => 8, :cols => 43 %></p>  
+  <p><%= f.submit submit_title %>&nbsp;&nbsp;<%= button_to_function '返回前頁', "history.back();" %></p>
+<% end %>

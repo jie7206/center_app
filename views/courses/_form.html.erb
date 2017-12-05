@@ -1,0 +1,8 @@
+<% form_for(@course) do |f| %>
+  <%= f.error_messages %>
+  <p>所屬階段：<%= f.select :status_id, status_arr %></p>
+  <p>課程名稱：<%= f.text_field :title, :size => 50 %></p>  
+  <p>網頁連結：<%= f.text_field :url_link, :size => 50 %></p>
+  <p>順序編號：<%= f.text_field :order_num, :size => 4 %></p>
+  <p><%= f.submit submit_title %>&nbsp;&nbsp;<%= button_to_function '返回前頁', "history.back();" %></p>
+<% end %>

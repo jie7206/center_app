@@ -1,0 +1,138 @@
+<h2><%= @center_name + '<u>' + @sub_title + '</u>一覽表' %></h2>
+<%#= area_and_career_bar %>
+<% # 为了方便批量输入用(Word, Excel) %>
+<% prepare_member_report_input_data %>
+
+<table border="1" cellpadding="5" cellspacing="2" style="border-collapse: collapse;font-size:0.2em" bordercolor="#444444" align="center" width="900">
+<style>
+.age {
+  width: 40px;
+}
+.occupation {
+  width: 60px;
+}
+</style>
+<% n = 1 %>
+<% count = 0 %>
+<% colspan = 8 %>
+<% member_records_for_statistics = [] %>
+<% email_max_length = 30 %>
+<% @members.each do |member| %>
+
+<%
+    # 如果member是姐妹的话则需对调主体对象的值
+    if member.sex_id == 0
+      spouse = member
+      member = Member.find(member.spouse_id)
+    else
+      spouse = member.spouse_id ? Member.find(member.spouse_id) : Member.new
+    end
+
+    # 孩子的资料
+    children = Member.find( :all, :conditions => ["father_id = ?", member.id], :order => "birthday" )
+
+    # 为 _member_report_input_data.html.erb 预备参数
+    @name_list_arr << member.name if member.area_id == session[:default_area_id].to_i
+    @name_list_arr << spouse.name if spouse.area_id == session[:default_area_id].to_i
+    @sex_list_arr << show_sex( member ) if member.area_id == session[:default_area_id].to_i
+    @sex_list_arr << show_sex( spouse ) if spouse.area_id == session[:default_area_id].to_i
+    @birthday_list_arr << member.get_birthday if member.area_id == session[:default_area_id].to_i
+    @birthday_list_arr << spouse.get_birthday if spouse.area_id == session[:default_area_id].to_i
+    @classification_list_arr << classification_arr.rassoc(member.classification)[0].sub('會員','').sub('人員','') if member.area_id == session[:default_area_id].to_i
+    @classification_list_arr << classification_arr.rassoc(spouse.classification)[0].sub('會員','').sub('人員','') if spouse.area_id == session[:default_area_id].to_i
+    @agelevel_list_arr << show_agelevel( member.get_age ) if member.area_id == session[:default_area_id].to_i
+    @agelevel_list_arr << show_agelevel( spouse.get_age ) if spouse.area_id == session[:default_area_id].to_i
+    @college_list_arr << show_if_college_text( member.is_college ) if member.area_id == session[:default_area_id].to_i
+    @college_list_arr << show_if_college_text( spouse.is_college ) if spouse.area_id == session[:default_area_id].to_i
+    @note_list_arr << build_member_note( member ) if member.area_id == session[:default_area_id].to_i
+    @note_list_arr << build_member_note( spouse ) if spouse.area_id == session[:default_area_id].to_i
+    member_records_for_statistics << member if member.area_id == session[:default_area_id].to_i
+    member_records_for_statistics << spouse if spouse.area_id == session[:default_area_id].to_i
+%>
+  <% 
+    if member.blessing_number
+      blessing_name = blessing_couple_arr.rassoc(member.blessing_number)[0]
+    else
+      blessing_name = ""
+    end
+    if member.picture and member.picture.include?(".jpg") and member.picture.include?("Family")
+      photo_url = "/images/picture/#{member.picture}"
+    else
+      photo_url = nil
+    end
+    if member.trace.last_class_title and member.trace.last_class_title.size > 2 and member.trace.class_type
+      picture_title = member.trace.last_class_date.strftime("%Y-%m-%d") + "：" + class_type_arr.rassoc(member.trace.class_type)[0] + "：" + member.trace.last_class_title
+    else
+      picture_title = "没有最近的活动记录!"
+    end
+%>
+<% #主体资料 %>
+          <tr>
+            <td rowspan="<%=3+children.size%>" align="center" valign="top" bgcolor="#F7DCB4"><a name="F<%=n%>" href="#F<%=n+1%>"><%= n %></a></td>
+            <td colspan="<%=colspan%>" align="center" bgcolor="#F7DCE8"><%= blessing_name %>&nbsp;【 <%= member.name %> & <%= spouse.name %> 家庭 】&nbsp;<%= member.ename %> <%= "&" if !member.ename.empty? and !spouse.ename.empty? %> <%= spouse.ename %>
+              <% if photo_url %>
+                <%= image_tag( photo_url, :width => "640", :title => picture_title, :style => "background-color:#fff;padding:8px;margin-top:5px;border:1px #ccc solid") %>
+              <% end %>
+            </td>
+          </tr>            
+          <tr onMouseOver="this.style.background='#EFEF88';" onMouseOut="this.style.background='#FFFFFF';">
+            <td><%= link_to h(member.name), edit_member_path(member) %> <%= show_eng_name(member.ename)%></td>
+            <td align="center"><%= sex_arr.rassoc(member.sex_id)[0] %></td>
+            <td align="center"><%= member.get_birthday %></td>
+            <td align="center" class="age"><%= member.get_age %> 歲</td>
+            <td><%= member.mobile %></td>
+            <td><%= truncate(member.email,email_max_length,'...') %></td>
+            <td><%= member.educational_background %></td>
+            <td class="occupation"><%= member.occupation %></td>
+            <!--
+            <td align="center"><%= classification_arr.rassoc(member.classification)[0] %></td>
+            //-->            
+          </tr>
+          <% count = count + 1 %>
+<% #对象资料 %>
+    <% if spouse.name %>        
+          <tr onMouseOver="this.style.background='#EFEF88';" onMouseOut="this.style.background='#FFFFFF';">
+            <td><%= link_to h(spouse.name), edit_member_path(spouse) %> <%= show_eng_name(spouse.ename)%></td>
+            <td align="center"><%= sex_arr.rassoc(spouse.sex_id)[0] %></td>
+            <td align="center"><%= spouse.get_birthday %></td>
+            <td align="center" class="age"><%= spouse.get_age %> 歲</td>
+            <td><%= spouse.mobile %></td>
+            <td><%= truncate(spouse.email,email_max_length,'...') %></td>
+            <td><%= spouse.educational_background %></td>
+            <td class="occupation"><%= spouse.occupation %></td>
+            <!--
+            <td align="center"><%= classification_arr.rassoc(spouse.classification)[0] %></td>
+            //-->            
+          </tr>
+          <% count = count + 1 %>
+    <% else %>
+          <tr onMouseOver="this.style.background='#EFEF88';" onMouseOut="this.style.background='#FFFFFF';">
+            <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+          </tr>
+    <% end %>
+<% #孩子资料 %>
+    <%  children.each do |child| %>
+          <tr onMouseOver="this.style.background='#EFEF88';" onMouseOut="this.style.background='#FFFFFF';">
+            <td><%= link_to h(child.name), edit_member_path(child) %> <%= show_eng_name(child.ename)%></td>
+            <td align="center"><%= sex_arr.rassoc(child.sex_id)[0] %></td>
+            <td align="center"><%= child.get_birthday %></td>
+            <td align="center" class="age"><%= child.get_age %> 歲</td>
+            <td><%= child.mobile %></td>
+            <td><%= truncate(child.email,email_max_length,'...') %></td>
+            <td><%= child.educational_background %></td>
+            <td class="occupation"><%= child.occupation %></td>
+            <!--
+            <td align="center"><%= classification_arr.rassoc(child.classification)[0] %></td>
+            //-->            
+          </tr>
+          <% count = count + 1 %>
+    <% end %>          
+<% n += 1 %>
+<% end %>
+    <tr>
+        <td colspan="<%=colspan+1%>" align="right" bgcolor="#F7DCB4">夫婦連同小孩共計 <%= count %> 人</td>
+    </tr>         
+</table>
+
+<% # 为了方便批量输入用(Word, Excel) %>
+<%#= render :partial => 'member_report_input_data', :locals => { :r => get_classification_counts( member_records_for_statistics ) } %>

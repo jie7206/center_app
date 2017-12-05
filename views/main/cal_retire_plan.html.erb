@@ -1,0 +1,7 @@
+<% # 若有传入参数列表时
+    if params[:pname]
+        build_params_from_pname params[:pname]
+        params[:show_retire_table_title] = true
+    end
+%>
+<%= render :partial => 'cal_retire_table' %>

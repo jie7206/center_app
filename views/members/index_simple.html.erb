@@ -1,0 +1,124 @@
+<h2><%= @center_name + '<u>' + @sub_title + '</u>名單一覽表' %>&nbsp;<span style="font-size:0.6em">(共計<%= @members.size %>人<%= show_student_count %>)</span></h2>
+
+<div id='status_bar_red'>
+    <%# 显示这几天内寿星的名字与生日 %>
+    <%= show_birthday_names %>
+    <%# 显示前几名最需要联系的重点名单 %>
+    <%= show_is_on_table_names %>
+</div>
+
+<%= area_and_career_bar %>
+<% # 为了方便批量输入用(Word, Excel) %>
+<% prepare_member_report_input_data %>
+<% 
+submit_title = "新增多笔課程学习紀錄"
+form_tag ( '/histories/auto_create', :method => :get ) do 
+#submit_title = "将所选變更為群眾基台"
+#form_tag ( '/members/career_change_to_QunZhong', :method => :get ) do
+#submit_title = "變更為建立家庭"
+#form_tag ( '/traces/auto_change_to_family', :method => :get ) do 
+#submit_title = "變更為疏离"
+#form_tag ( '/members/auto_change_to_QunZhong', :method => :get ) do 
+#submit_title = "變更類別為家庭"
+#form_tag ( '/members/career_change_to_family', :method => :get ) do 
+#submit_title = "變更地區為大连"
+#form_tag ( '/members/area_change_to_BeiJing', :method => :get ) do 
+#submit_title = "地區全部变為北京"
+#form_tag ( '/members/all_area_change_to_BeiJing', :method => :get ) do  
+#submit_title = "批量删除所选取的人员"
+#form_tag ( '/members/delete_select_members', :method => :get ) do 
+#submit_title = "批量设为admin_only"
+#form_tag ( '/members/auto_set_admin_only', :method => :get ) do 
+-%>
+<table border="1" cellpadding="5" cellspacing="2" style="border-collapse: collapse" bordercolor="#444444" align="center" width="98%">
+  <tr class="th_row">
+    <% if session[:role] == 'admin' %>
+        <td width="50"><%= link_to "多选", new_member_path %></td>
+    <% end %>
+    <td><%= link_to "姓名", :order_method => "name", :order_desc => 0, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] %></td>
+    <td><%= link_to "性別", :order_method => "sex_id", :order_desc => 1, :include_trace => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] %></td>
+    <td><%= link_to "歲數", :order_method => "get_age", :order_desc => 0,:cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] %></td>
+    <td><%= link_to "類別", :order_method => "classification", :order_desc => 0, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] %></td>
+    <!--td><%= link_to "類型", :order_method => "career", :order_desc => 0, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] %></td-->
+    <!--td><%= link_to "地區", :order_method => "area_id", :order_desc => 0, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] %></td-->
+    <!--td>學歷</td>
+    <td>職業</td-->
+    <td><%= link_to "生日", :order_method => "get_birthday_short", :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] %></td>
+    <td>手機</td>
+    <td><%= link_to "联系日期", :order_method => "last_class_date", :order_desc => 1, :include_trace => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] %></td>
+    <td><%= link_to "本季活动", {:order_method => "histories_count_3month", :order_desc => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids]},{:title => "3个月内出席公的活动次数，更新记录 >= #{(Date.today-3.month).to_s(:db)}"} %></td>
+    <td><%= link_to "半年活动", {:order_method => "histories_count_6month", :order_desc => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids]},{:title => "6个月内出席公的活动次数，更新记录 >= #{(Date.today-6.month).to_s(:db)}"} %></td>
+        <td><%= link_to "本季奉献", {:order_method => "donated_count", :order_desc => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] },{:title=>"3个月内的奉獻次數，更新记录 >= #{(Date.today-3.month).to_s(:db)}"}%></td>
+        <td><%= link_to "半年奉献", {:order_method => "donated_count_6months", :order_desc => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] },{:title=>"6个月内的奉獻次數，更新记录 >= #{(Date.today-6.month).to_s(:db)}"}%></td>
+        <td><%= link_to "奉献总额", {:order_method => "donation_total_amount", :order_desc => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids]}, {:title => "从有记录起到现在所有的奉献总额"} %></td>
+        <td><%= link_to "每月平均", {:order_method => "donation_month_ave", :order_desc => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids]}, {:title => "从有记录起到现在平均每个月的奉献"}%></td>
+    <!--td><%= link_to "子女数", :order_method => "children_count", :order_desc => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] %></td-->
+    <td><%= link_to "父母姓名", :order_method => "father_id", :order_desc => 0, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] %></td>
+  </tr>
+  
+<% 
+    n = 1
+    @members.each do |member| 
+        last_step_id = member.trace.last_step_id
+        next_step_id = member.trace.next_step_id
+
+        # 为 _member_report_input_data.html.erb 预备参数
+        @name_list_arr << member.name
+        @sex_list_arr << show_sex( member.sex_id )
+        @birthday_list_arr << member.get_birthday
+        @classification_list_arr << classification_arr.rassoc(member.classification)[0].sub('會員','').sub('人員','')
+        @agelevel_list_arr << show_agelevel( member.get_age )
+        @college_list_arr << show_if_college_text( member.is_college )
+        @note_list_arr << build_member_note( member )
+
+%>
+          <tr onMouseOver="this.style.background='#EFEF88';" onMouseOut="this.style.background='#FFFFFF';">
+            <% if session[:role] == 'admin' %>
+                <td><%= check_box_tag 'mids[]', member.id %><%=n%></td>
+            <% end %>
+            <td><%= link_to h(member.name), edit_member_path(member), :title => member.ename %> <%= show_spouse_name(member.spouse_id) %> <%= show_if_donated( member.is_donated ) %> <%= show_if_on_table( member.is_on_table ) %> <%= show_if_college( member.is_college ) %></td>
+            <td align="center"><%= show_sex( member.sex_id ) %></td>
+            <td  align="center"><%= link_to member.get_age, edit_member_path(member) %></td>
+            <!--td><%= member.educational_background %></td>
+            <td><%= member.occupation %></td-->
+            <td width="90" align="center"><%= link_to career_arr.rassoc(member.career)[0][0..5]+classification_arr.rassoc(member.classification)[0], edit_member_path(member) %></td>
+            <!--td width="70" align="center"><%= link_to career_arr.rassoc(member.career)[0], edit_member_path(member) %></td-->
+            <!--td><%= link_to area_arr.rassoc(member.area_id)[0], edit_member_path(member) %></td-->  
+            <td align="center"><%= link_to member.get_birthday, edit_member_path(member) %></td>
+            <td><%= link_to member.mobile, edit_member_path(member) if member.mobile %></td>
+            <td align="center"><%= link_to member.trace.last_class_date.strftime("%y-%m-%d"), edit_trace_path(member.trace), :title => member.trace.last_class_title %></td>
+            <td align="right"><%= link_to( member.histories_count_3month, :controller => "histories", :action => "member_history_list", :mid => member.id ) %></td>
+            <td align="right"><%= link_to( member.histories_count_6month, :controller => "histories", :action => "member_history_list", :mid => member.id ) %></td>
+                <td align="right"><%= link_to member.donated_count, :controller => "donations", :action => "index", :data_field => 'member_id', :data_value => member.id %></td>
+                <td align="right"><%= link_to member.donated_count_6months, :controller => "donations", :action => "index", :data_field => 'member_id', :data_value => member.id %></td>
+                <td align="right"><%= link_to member.donation_total_amount, :controller => "donations", :action => "index", :data_field => 'member_id', :data_value => member.id %></td>
+                <td align="right"><%= member.donation_month_ave %></td>
+                <!--td align="right"><%= link_to member.children_count, :action => 'select_children', :p => member.id %></td-->
+            <td width="70">
+                <% if member.father_id and member.father_id > 0 %>
+                    <%= Member.find(member.father_id).name %>
+                <% elsif member.introducer_id and member.introducer_id > 0 
+                    begin
+                        if m = Member.find(member.introducer_id) %>
+                            <%= m.name %>
+                <%      end
+                    rescue
+                    end %>
+                <% end %>
+            </td>
+            <% n += 1 %>
+          </tr>
+        <% end %>
+</table>
+    <% if session[:role] == 'admin' %>
+        <p align="center"><%= submit_tag submit_title %></p>
+    <% end %>
+<% end %>
+
+<% if @name_list_arr.size > 0 %>
+
+  <p class="result_text"><%=@sub_title%>包含 [ <%= @name_list_arr.join(", ") if @name_list_arr.size > 0 %> ] 共計 <%= @name_list_arr.size %> 人 <%= show_student_count %> </p>
+  <% # 为了方便批量输入用(Word, Excel) %>
+  <%#= render :partial => 'member_report_input_data', :locals => { :r => get_classification_counts( @members ) } %>
+
+<% end %>

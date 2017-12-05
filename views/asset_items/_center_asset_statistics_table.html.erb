@@ -1,0 +1,20 @@
+<p/>
+<table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;font-size:0.8em" align="center" width="<%= @table_width %>">
+  <tr>  
+    <td class='th_row'>家庭資產</td><td align="right"><%=@total_family_center_assets.to_i%></td>
+    <td class='th_row'>學生資產</td><td align="right"><%=@total_student_center_assets.to_i%></td>
+    <td class='th_row'>總資產净值</td><td align="right" style="color:#C00"><%=@total_net_assets.to_i%></td>
+    <td class='th_row'>家庭每月支出</td><td align="right"><%=@total_family_center_month_use.to_i%></td>
+    <td class='th_row'>學生每月支出</td><td align="right"><%=@total_student_center_month_use.to_i%></td>
+    <td class='th_row'>每月總支出</td><td align="right"><%=@total_month_use.to_i%></td>
+    <td class='th_row'>每月總收入</td><td align="right"><%=@total_center_month_income.to_i%></td>
+    <td class='th_row'>每月總損益</td><td align="right"><%=(@total_center_month_income-@total_month_use).to_i%></td>
+    <td class='th_row'>尚可支持</td><td align="right"><%= sprintf("%0.1f", @total_remain_cost_month) %> 个月</td>
+    <!--
+    <td>總流動資產</td><td align="right"><%=@total_flow_assets.to_i%></td>
+    <td>预计收入</td><td align="right"><%=@total_plan_get.to_i%></td>
+    <td>预计支出</td><td align="right"><%=@total_plan_use.to_i%></td>
+    //-->     
+  </tr>    
+</table>   
+<p/>

@@ -1,0 +1,45 @@
+<h1><%= link_to(@trace.member.name, edit_member_path(@trace.member)) %>的活动進度 <span class="link_to_history"><%= link_to '[個人資料]', :controller => 'members', :action => 'edit', :id => @trace.member.id %></span> <span class="link_to_history"><%= link_to '[活动紀錄]', :controller => 'histories', :action => 'index_for_member', :mid => @trace.member_id %></span></h1>
+<% form_for(@trace) do |f| %>
+	  <%= f.error_messages %>
+	  <p>態度評等：<%= f.select :star_level, star_arr %></p>
+	  <p>活动类别：<%= select("trace", "class_type", class_type_arr.collect {|c| [ c[0], c[1] ] }, { :include_blank => false }) %> <%= f.check_box :is_public_class %> 可视为公的活动 （包含礼拜、听课、聚会）</p>
+	  <p>活动日期：<%= f.text_field :last_class_date, :size => "9", :value => @trace.last_class_date.strftime("%Y-%m-%d") %></p>
+	  <p>活动地区：<%= select("trace", "aid", area_arr.collect {|a| [ a[0], a[1] ] }, { :include_blank => false }) %></p>
+	  <p>活动老師：<%= select("trace", "last_class_teacher", Member.find_all_by_is_teacher(true).collect {|m| [ m.name, m.name ] }, { :include_blank => false }) %></p>
+	  <p>活动名稱：<%= f.text_field :last_class_title, :size => 47, :onclick => "this.select();" %></p>
+	  <p>活动感想：<br/><%= f.text_area :class_feel, :size => "60x2" %></p>
+
+<!-- 自动记录到时间管理系统开始 //-->
+
+	<% all_rec_change_params = Param.all(:conditions=>["rec_change = ? and name like '%life_interest_%'",true],:order=>"order_num") %>
+  <p>生活类别：
+    <% etime = Time.now ; btime = etime - 10.minutes %>
+  	<%= select(:param_change, :param_id, all_rec_change_params.collect {|p| [ truncate(p.title,10), p.id ]}, { :include_blank => true}) %>&nbsp;&nbsp;&nbsp;&nbsp;开始：<%= text_field_tag "begin_time", "#{add_zero(btime.hour,2)}:#{add_zero(btime.min,2)}", :size => 4, :onclick => "this.select()" %>&nbsp;&nbsp;结束：<%= text_field_tag "end_time", "#{add_zero(etime.hour,2)}:#{add_zero(etime.min,2)}", :size => 4, :onclick => "this.select()" %></p>
+    <%= hidden_field_tag :member_name, @trace.member.name %>
+
+<!-- 自动记录到时间管理系统结束 //--> 
+
+	<% if session[:role] == 'admin' %>
+	  <p><%= f.submit '儲存更新' %>&nbsp;&nbsp;<%= button_to_function '返回前頁', "history.back();" %></p>
+	<% end %>
+
+<% end %>
+<hr/>
+<p>課程預約：</p>
+<% form_remote_tag( :url => url_for(:controller=>'traces',:action=>'update_trace_next_values'), :html => { :id => "frmp#{@trace.id}" } ) do -%>
+	<%= hidden_field(:trace, :id, :value => @trace.id ) %>
+	<p>活动日期：<%= text_field :trace, :next_class_date, :value => @trace.next_class_date, :size => "7" %>&nbsp;
+     开始时间：<%= text_field :trace, :next_class_time, :value => show_time(@trace.next_class_time), :size => "3" %>&nbsp;
+	   活动老師：<%= select("trace", "next_class_teacher", Member.find_all_by_is_teacher(true).collect {|m| [ m.name, m.name ] }, { :include_blank => false }) %>
+	</p>
+	<p>活动名稱：<%= text_field :trace, :next_class_title, :size => 55, :onclick => "this.select();" %></p>
+	<p>活动内容：<%= text_field :trace, :next_class_content, :size => 55, :onclick => "this.select();" %></p>
+	<p>活动地点：<%= text_field :trace, :place, :size => 55, :value => @trace.place ? @trace.place : value_of('default_activity_place') %></p>
+	<p><%= submit_tag("儲存課程預約") %></p>
+<% end -%>
+<hr/>
+<p>帶領計畫：</p>
+<% form_remote_tag( :url => url_for(:controller=>'members',:action=>'update_table_field_value',:field_name=>'pray_note',:id=>@trace.member ), :html => { :id => "frm#{@trace.member.id}" } ) do -%>
+	<p><%= text_area_tag( :field_value,  @trace.member.pray_note, :size => "60x3" ) %></p>
+	<p><%= submit_tag("儲存帶領計畫") %></p>
+<% end -%>

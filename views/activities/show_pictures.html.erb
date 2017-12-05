@@ -1,0 +1,15 @@
+<h2><%= @begin_date%> <%= @title %> 精彩照片回顧</h2>
+
+<% pics_per_row = 5; image_width = 230; image_margin = 4; piex_fix = -2 %>
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse" bordercolor="#444444" align="center" width="<%=image_width*pics_per_row+image_margin*(pics_per_row*3+piex_fix)%>">
+  <tr>
+    <td>
+          <% @pictures.each do |p| %>
+              <% pic_path = "/images/activities/#{@folder_name}/thumb/#{p}" %>
+              <%= link_to image_tag(pic_path, :border => 0, :align => 'left', :style => "margin: #{image_margin}px;"), pic_path.sub('/thumb',''), :target => '_blank' %>
+          <% end %>      
+    </td>
+  <tr>
+</table>
+
+<p>&nbsp;</p>

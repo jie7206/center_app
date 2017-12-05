@@ -1,0 +1,39 @@
+<h2>步驟項目一覽表</h2>
+
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse" bordercolor="#444444" align="center" width="90%">
+  <tr class="th_row">
+    <td>編號</td>
+    <td width="90">所屬階段</td> 
+    <td><%= link_to '步驟名稱', new_step_path %></td>
+    <td>動作</td>
+    <td>人數</td>
+    <td>排序</td>
+    <td width="50%">說明</td>
+  </tr>
+
+<% num =1 %>
+<% @steps.each do |step| %>
+<% member_count = step.member_count_all.split("/") %>  
+  <tr align="center" valign="top">
+    <td><%= num %>.</td>
+    <td><%= status_arr.rassoc(step.status_id)[0] %></td>
+    <td align="left"><%= link_to step.name, edit_step_path(step) %></td>
+    <td><%= link_to image_tag('icon/trash.png',:width=>21,:height=>21,:border=>0), step, :confirm => "你確定要刪除這筆資料?", :method => :delete %></td>
+    <td>
+      <% if member_count[0].to_i > 0 %>
+        <%= link_to member_count[0], { :controller => 'members', :action => 'select_steps', :sid => step.id }, :target => "_blank" %>/
+      <% else %>
+        <%= member_count[0] %>/
+      <% end %>
+      <%= link_to member_count[1], { :controller => 'members', :action => 'select_all_pass_steps', :sid => step.id }, :target => "_blank" %>
+    </td>
+    <td><%= link_to '↑', {:action => 'order_up', :id => step} %> <%= link_to '↓', {:action => 'order_down', :id => step} %></td>
+    <td align="left"><%= step.memo.gsub(/\n/, "<br/>") %></td>
+  </tr>
+  <% num += 1 %>
+<% end %>
+
+</table>
+
+<p>&nbsp;</p>
+

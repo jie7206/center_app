@@ -1,0 +1,13 @@
+<h2>SRT格式字幕开始时间自动添加器</h2>
+<%= golden_verse_bar %>
+
+<table width="40%" border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;" align="center">
+  <tr>
+    <td>
+      <% form_tag( {:action => 'auto_add_str_start_time_form'}, {:name => 'result_form'} ) do %>
+        <p>输出结果: <%= text_area_tag( :result_content,  @result, :style => 'border: 1px;width:100%;height:600px;font-size:1.2em;', :onclick => 'this.select()' ) %></p>
+        <p><input type="submit" value="重来"></p>
+      <% end %>
+    </td>
+  </tr>
+</table>

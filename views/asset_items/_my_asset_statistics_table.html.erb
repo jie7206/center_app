@@ -1,0 +1,45 @@
+      <%
+      ################### 显示定存目标(开始) ################### 
+      results = []
+      (0..@money_save_goals.size-1).each do |i|
+        item = @money_save_goals[i].split(':')
+        data = { :year => item[0].to_i, :goal => item[1].to_i }
+        results << data if data[:year] >= Date.today.year.to_i
+      end
+      %>
+      <% save_goal_for_this_year = save_goal_for_next_year = i = next_year = 0 %>
+      <% results.each do |r| %>
+        <% 
+          if (Date.today.year.to_i == r[:year])
+            save_goal_for_this_year = r[:goal]
+            next_index = (i+1 > results.size-1) ? i : i+1
+            next_year = results[next_index][:year]
+            save_goal_for_next_year = results[next_index][:goal]
+          end
+          i += 1 %>
+      <% end %>
+      <% ################### 显示定存目标(结束) ################### %>    
+<p/>
+<table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;font-size:0.8em" align="center" width="<%= @table_width %>">  
+  <tr>  
+    <td align="center" class='th_row'>距離退休</td><td align="right"><%= link_to @retire_date_diff, '#', :title => "退休日: #{@retire_date}" %> 天</td>
+    <td align="center" class='th_row'>流動資產</td><td align="right"><%= link_to_total_flow_assets %> 元</td>
+    <td align="center" class='th_row'>預計支出</td><td align="right"><%= @total_plan_use.to_i %> 元</td>
+    <td align="center" class='th_row'>可用現金</td><td align="right"><%=(@total_flow_assets - @total_plan_use).to_i%> 元</td>
+    <% total_loan_interests_value = @total_loan_interests_arr.sum.to_i # 貸款總利息%>
+    <td align="center" class='th_row'>貸款本息</td><td align="right"><%= link_to @total_loan_value.to_i, "#", :title => "本金: #{@total_loan_items.to_i}(#{(@total_loan_items/@rmb_rate).to_i})，利息: #{@total_loan_interests_arr[0].to_i} + #{@total_loan_interests_arr[1].to_i} = #{total_loan_interests_value}(#{(total_loan_interests_value/@rmb_rate).to_i})，合計: #{(@total_loan_value/@rmb_rate).to_i} 人民幣" %> 元</td>
+    <td align="center" class='th_row'>流資加負債</td><td align="right"><%= link_to_current_assets %> 元</td>   
+    <td align="center" class='th_row'><%= link_to '總固定資產', value_of("hongshuwan_price_url"), :target => "_blank" %></td><td align="right"><%= link_to_total_fixed_assets %> 元</td>
+    <td align="center" class='th_row'>總資產淨值</td><td align="right"><%= link_to_net_asset_value %> 元 <%= show_current_assets_icon(get_this_month_current_assets_goal,@total_current_assets,"\n#{get_next_year_current_assets_goal}") %></td>
+  </tr>   
+  <!-- 显示资产目标 //-->
+  <tr align="center">
+    <td colspan="16" align="center" style="color:#DD0000;align:left;font-size:6px;background-color: #FFC;">
+      <% results[0,12].each do |r| 
+        style = (r[:year]-2016)%3 == 0 ? 'style="font-weight:bold"' : '' %>
+        <span <%= style %>><%= r[:year] %></span> : <%= r[:goal] %>&nbsp;
+      <% end %>
+    </td>
+  </tr>
+</table>   
+<p/>

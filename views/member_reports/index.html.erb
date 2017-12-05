@@ -1,0 +1,44 @@
+<h2><%= @center_name %>人員分佈及活動報表 
+    <span class="link_to_history">
+        <%= link_to '[家庭報表]', :controller => 'members', :action => 'family_report' %>
+        <%= link_to '[產生新報表]', :action => 'auto_create' %>
+        <%= link_to '[显示全部记录]', :action => 'index', :showall => 1 %>
+    </span>
+</h2>
+
+<table border="1" cellpadding="2" cellspacing="2" style="font-size:0.1em;border-collapse: collapse" bordercolor="#444444" align="center" width="<%= 25*(11+2*5*5) %>">
+
+<% @member_reports.each do |member_report| %>
+
+      <tr onMouseOver="this.style.background='#EFEF88';" onMouseOut="this.style.background='#FFFFFF';" align="right">
+        <td align="center"><%= link_to member_report.rec_date.strftime("%y-%m-%d"), edit_member_report_path(member_report) %></td>
+        <td align="right"><%= link_to member_report.family_count, {:controller => 'members',  :cid => 'local_family_all'}, :title => '祝福家庭' %></td>
+        <td align="right"><%= link_to member_report.student_member_count, {:controller => 'members',  :cid => '1'}, :title => '学生会员' %></td>
+        <td align="right"><%= link_to member_report.worker_member_count, {:controller => 'members',  :cid => '2'}, :title => '职工会员' %></td>
+        <td align="right"><%= link_to member_report.generation2_1_count, {:controller => 'members',  :cid => 'local_g21_all'}, :title => '小学二世' %></td>
+        <td align="right"><%= link_to member_report.generation2_2_count, {:controller => 'members',  :cid => 'local_g22_all'}, :title => '中学二世' %></td>
+        <td align="right"><%= link_to member_report.student_new_count, {:controller => 'members',  :cid => '6'}, :title => '学生学员' %></td>
+        <td align="right"><%= link_to member_report.worker_new_count, {:controller => 'members',  :cid => '7'}, :title => '职工学员' %></td>
+        <td align="right"><%= link_to member_report.blessedable_count, {:controller => 'members',  :cid => 'local_blessedable_all'}, :title => '可受祝福' %></td>
+        <td align="right"><%= link_to member_report.leader_count, {:controller => 'members',  :cid => 'local_leader_all'}, :title => '献身领导' %></td>
+        <td align="right"><%= link_to member_report.staff_count, {:controller => 'members',  :cid => 'local_staff_all'}, :title => '献身会员' %></td>
+        
+<%  # 分类显示
+        this_total_value = 0 # 总数
+        %w(m f).each do |sex| # 男女性别
+            %w(core normal registered inactive new).each do |ctype| # 会员分类
+                %w(student young adult old college).each do |age| # 年龄层 + 是否为大学生
+                    title = "#{sex}_#{ctype}_#{age}"
+                    key = "#{sex}_#{ctype}_#{age}_ids"
+                    value = member_report.send(title) ? member_report.send(title) : 0
+                    mids = member_report.send(key) ? member_report.send(key) : ","
+                    this_total_value += value  %>                
+          <td align="right"><%= link_to ( "#{value}", { :controller => :members, :action => :index_simple, :mids => mids }, {:title =>title} ) %></td>
+<%  
+        end
+      end
+    end %>    
+    <td align="right"><%= link_to this_total_value, '#', :title => "单日总数" %></td>
+</tr>
+<% end %>
+</table>

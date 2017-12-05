@@ -1,0 +1,23 @@
+<p>
+  <b>Member:</b>
+  <%=h @pay_log.member_id %>
+</p>
+
+<p>
+  <b>Title:</b>
+  <%=h @pay_log.title %>
+</p>
+
+<p>
+  <b>Amount:</b>
+  <%=h @pay_log.amount %>
+</p>
+
+<p>
+  <b>Is received:</b>
+  <%=h @pay_log.is_received %>
+</p>
+
+
+<%= link_to 'Edit', edit_pay_log_path(@pay_log) %> |
+<%= link_to 'Back', pay_logs_path %>

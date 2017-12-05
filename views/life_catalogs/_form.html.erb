@@ -1,0 +1,11 @@
+<% form_for(@life_catalog) do |f| %>
+<%= f.error_messages %>
+<p>名稱：<%= f.text_field :name, :size => 6 %></p>
+<p>權重：<%= f.text_field :weight, :size => 6 %></p>
+<p>列序：<%= f.text_field :line_order_num, :size => 6 %></p>
+<p>圖序：<%= f.text_field :order_num, :size => 6 %></p>
+<p>每日目標：<%= f.text_field :goal_minutes, :size => 6, :onclick => "this.select();" %> <br/><span style="font-size:0.7em">(輸入a20可將全部目標類別的每日目標更新為20分鐘)</span></p>
+<p>累計總分：<%= f.text_field :total_minutes, :size => 6 %></p>
+<p><%=  f.check_box  :chartable  %>  加入統計 <%=  f.check_box  :goalable  %> 設為目標</p>
+<p><%= f.submit submit_title %>&nbsp;&nbsp;<%= button_to_function '返回前頁', "history.back();" %></p>
+<% end %>

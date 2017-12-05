@@ -1,0 +1,61 @@
+<br/><h2><%= link_to '工作輪值一覽表', :controller => 'params' %></h2>
+
+<% 
+=begin
+    output_html = "<table border='1' cellpadding='7' cellspacing='0' style='border-collapse: collapse' bordercolor='#444444' align='center'>\n<tr>\n"
+    td_width = 137
+    cols_per_row = 7  #每一列要放多少儲存格
+    td_through_count = 1  #一邊Loop一邊增加，才能計算到底能不能被除盡
+    td_has_content_count = 0  #計算該列有多少儲存格已有內容
+    td_supply = ''  #補齊儲存格的數量以避免表格缺線難看
+    days = get_param_value('work_turn_days').to_i  #要顯示多少天
+    
+    pray_names = get_param_arr('pray_arr')*days
+    morning_names = get_param_arr('morning_arr')*days
+    cook_names = get_param_arr('cook_arr')*days
+    ser_place_names = get_param_arr('service_place_arr')*days
+    ser_leader_names = get_param_arr('service_leader_arr')*days
+    ser_pray_names = get_param_arr('service_pray_arr')*days
+    ser_cook_names = get_param_arr('service_cook_arr')*days
+    
+    pray_name_index = morning_name_index = cook_name_index = 0
+    ser_place_index = ser_leader_index = ser_pray_index = ser_cook_index = 0
+    
+    start_date = Date.new( work_turn_start[:year], work_turn_start[:month], work_turn_start[:day] )
+            
+    start_date.upto(start_date+(days-1)) do |d|
+        i1 = morning_name_index; morning_name_index += 1;
+        i2 = morning_name_index; morning_name_index += 1;
+        i3 = morning_name_index; morning_name_index -= 1;
+        #i4 = morning_name_index; morning_name_index -= 2;  <br/>早餐：#{morning_names[i4]}
+        i5 = cook_name_index; cook_name_index += 1;
+        i6 = pray_name_index; pray_name_index += 1;
+        content = "<div style='text-align:center'>#{d} (#{show_chinese_week(d.strftime('%w').to_i)})</div><hr class='dashed_line' /><table cellpadding='5'><tr><td>帶領：#{pray_names[i6]}<br/>掃地：#{morning_names[i1]}<br/>拖地：#{morning_names[i2]}<br/>廁所：#{morning_names[i3]}<br/>做飯：#{cook_names[i5]}</td>"
+ =begin
+        if d.strftime('%w') == '0'
+          s1 = ser_place_index; ser_place_index += 1;
+          s2 = ser_leader_index; ser_leader_index += 1;
+          s3 = ser_pray_index; ser_pray_index += 1;
+          s4 = ser_cook_index; ser_cook_index += 1;
+          sunday_service = "<td valign='top'>場地：#{ser_place_names[s1]}<br/>主持：#{ser_leader_names[s2]}<br/>禱告：#{ser_pray_names[s3]}<br/>午餐：#{ser_cook_names[s4].sub(';','<br/>　　　')}</td>"
+          content += sunday_service
+        end
+ =end
+        content += '</tr></table>'
+        td_html = "<td valign='top' align='left' style='padding-top:9px;min-width:#{td_width}px;'>#{content}</td>\n"
+        if td_through_count % cols_per_row == 0
+            output_html = output_html + td_html + "</tr>\n<tr>\n"
+            td_has_content_count = 0
+        else
+            output_html = output_html + td_html
+            td_has_content_count += 1
+        end
+        td_through_count += 1
+    end
+    (td_has_content_count...cols_per_row).each {td_supply += "<td>&nbsp;</td>\n"} if days-1 > cols_per_row && td_has_content_count > 0
+    output_html += td_supply + "</tr></table>"
+=end    
+%>
+<%=@output_html%>
+
+<p>&nbsp;</p><p>&nbsp;</p>

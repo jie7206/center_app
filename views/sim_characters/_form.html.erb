@@ -1,0 +1,175 @@
+<% form_for(@sim_character) do |f| %>
+  <%= f.error_messages %>
+
+<table align="center">
+  <tr>
+    <td>
+  
+      <table border="1" cellpadding="3" cellspacing="0" style="border-collapse: collapse;margin-top:10px" bordercolor="#999999" align="center">
+        <tr>
+          <td align="right">姓名：</td>
+          <% 
+            if @sim_character and @sim_character.name and !@sim_character.name.empty?
+              default_name = nil
+            else
+              default_name = get_rand_character_name
+            end
+          %>
+          <td><%= f.text_field :name, :size => 10, :value => default_name %></td>
+          <td align="right">性別：</td>
+          <td><%= select("sim_character", "sex", sex_arr ) %></td>
+          <td align="right">生日：</td>
+          <td><%= f.date_select :birthday, :start_year => 1950, :end_year => Time.now.year, :use_month_numbers => true, :default => Time.now - 20.year %></td>
+        </tr>
+        <tr>
+          <td align="right">靈父母：</td>
+          <td><%= select("sim_character", "parent_id", SimCharacter.all(:order => "name").collect {|m| [ m.name, m.id ] }, { :include_blank => true }) %></td>
+          <td align="right">身份：</td>
+          <td><%= f.select :identity, sim_identity_arr %></td>
+          <td align="right">職業：</td>
+          <td><%= f.select :occupation_num, sim_occupation_arr %></td>
+        </tr>
+        <tr>
+          <td align="right">學校：</td>
+          <td><%= select("sim_character", "school_name", sim_school_name_arr.collect {|n| [ n[0], n[1] ] }, { :include_blank => true }) %></td>
+          <td align="right">專業：</td>
+          <td><%= select("sim_character", "school_major", sim_school_major_arr.collect {|m| [ m[0], m[1] ] }, { :include_blank => true }) %></td>
+          <td align="right">學歷：</td>
+          <td><%= f.select :educational_background_num, sim_educational_background_arr %></td>
+        </tr>
+        <tr>
+          <td align="right">祝福對數：</td>
+          <td><%= select("sim_character", "blessing_num", sim_blessing_arr.collect {|b| [ b[0], b[1] ] }, { :include_blank => true }) %></td>
+          <td align="right">主體對象：</td>
+          <td><%= select("sim_character", "spouse_id", SimCharacter.all(:order => "name").collect {|m| [ m.name, m.id ] }, { :include_blank => true }) %></td>
+          <td align="right">想要再來：</td>
+          <td><%= f.text_field :will_comein_p, :size => 8 %></td>
+        </tr>
+        <tr>
+          <td align="right">智力：</td>
+          <td><%= f.text_field :intelligence_p, :size => 8 %></td>
+          <td align="right">靈力：</td>
+          <td><%= f.text_field :sprit_p, :size => 8 %></td>
+          <td align="right">毅力：</td>
+          <td><%= f.text_field :willpower_p, :size => 8 %></td>
+        </tr>    
+        <tr>
+          <td align="right">真理追求：</td>
+          <td><%= f.text_field :seek_truth_p, :size => 8 %></td>
+          <td align="right">真愛追求：</td>
+          <td><%= f.text_field :seek_love_p, :size => 8 %></td>
+          <td align="right">夢想追求：</td>
+          <td><%= f.text_field :seek_dream_p, :size => 8 %></td>
+        </tr>    
+        <tr>
+          <td align="right">講義能力：</td>
+          <td><%= f.text_field :express_p, :size => 8 %></td>
+          <td align="right">陪談能力：</td>
+          <td><%= f.text_field :coaching_p, :size => 8 %></td>
+          <td align="right">領導能力：</td>
+          <td><%= f.text_field :leadership_p, :size => 8 %></td>
+        </tr>
+        <tr>
+          <td align="right" valign="top">日誌紀錄：</td>
+          <td colspan="6" align="center"><%= f.text_area :log, :style => 'width:100%;height:100px' %></td>
+        </tr>
+      </table>
+
+    </td>
+  </tr>
+  <tr>
+    <td style="padding-left:24px">
+      <table align="center" width="750">
+        <tr>
+          <td>
+            <!--JQuery图像选取器[资料提供开始]-->
+            <%  
+                # MAX: 606,'M' / 68,'F'
+                icon_num_each_sex = 8 * 4
+                icons_array = []
+                if @sim_character.photo and @sim_character.sex == 1
+                  male_icons = get_rand_portrait_array(icon_num_each_sex-1,606,'M')
+                  female_icons = get_rand_portrait_array(icon_num_each_sex,68,'F')
+                  male_icons = [@sim_character.photo] + male_icons
+                  icons_array = male_icons + female_icons
+                elsif @sim_character.photo and @sim_character.sex == 0
+                  male_icons = get_rand_portrait_array(icon_num_each_sex,606,'M')
+                  female_icons = get_rand_portrait_array(icon_num_each_sex-1,68,'F')
+                  female_icons = [@sim_character.photo] + female_icons
+                  icons_array = female_icons + male_icons
+                else
+                  male_icons = get_rand_portrait_array(icon_num_each_sex,606,'M')
+                  female_icons = get_rand_portrait_array(icon_num_each_sex,68,'F')
+                  icons_array = male_icons + female_icons
+                end
+                
+                @icon_width = 69
+                prefix = 'san12'
+              %>        
+            <div class="picker" style="text-align:center">
+              <span style="margin-bottom:0.5em">頭像圖案: </span>
+              <select name="sim_character[photo]" class='image-picker'><p/>
+                <% icons_array.each do |icon| %>
+                  <option data-img-src="/images/<%=prefix%>/<%=icon%>.jpg" data-img-width="30" value="<%=icon%>"><%=icon%></option>
+                <% end %>
+              </select>
+            </div>
+            <!--JQuery图像选取器[资料提供开始]-->
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>  
+
+  <p align="center"><%= f.submit submit_title %>&nbsp;&nbsp;<%= button_to_function '返回前頁', "history.back();" %></p>
+<% end %>
+
+<!--JQuery ImagePicker图像选取器[程序文件开始]-->
+<!--DEMO=>http://demo.sc.chinaz.com/Files/DownLoad/webjs1/201306/jiaoben1069/-->
+<!--image-picker是一个简单的jQuery插件，将select元素进入一个更加用户友好的图形界面-->
+<!--必要文件-->  
+<link rel="stylesheet" type="text/css" href="/stylesheets/image-picker.css">
+<script src="/javascripts/jquery.min.js" type="text/javascript"></script>
+<!--瀑布流布局插件-->
+<script src="/javascripts/jquery.masonry.min.js" type="text/javascript"></script>
+<!--图片选择器插件-->
+<script src="/javascripts/image-picker.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+
+  $("select.image-picker").imagepicker({
+    hide_select:false
+  });
+  
+  $("select.image-picker.show-labels").imagepicker({
+    hide_select:false, 
+    show_label:true
+  });
+  
+  $("select.image-picker.limit_callback").imagepicker({
+    limit_reached:function(){
+      alert('We are full!')
+    },hide_select:false
+  });
+  
+  //瀑布流布局
+  var container = $("select.image-picker.masonry").next("ul.thumbnails");
+  
+  container.imagesLoaded(function(){ 
+    container.masonry({ 
+      itemSelector:"li"
+    }); 
+  });
+  
+});
+</script>
+<!--JQuery图像选取器(设置图像大小)-->
+<style type="text/css">
+  .thumbnails li img {
+    width: <%= @icon_width %>px;
+    margin: -3px;
+    padding: 1px;
+  }
+</style>
+<!--JQuery图像选取器[程序文件结束]-->

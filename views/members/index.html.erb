@@ -1,0 +1,55 @@
+<h2><%= link_to @center_name + '<u>' + @sub_title + '</u>名單一覽表', :action => 'index' %>&nbsp;<span style="font-size:0.6em">(共計<%= @members.size %>人<%= show_student_count %>)</span></h2>
+<%= classification_and_status_bar %>
+<p><br/></p>
+<table border="1" cellpadding="3" cellspacing="0" style="border-collapse: collapse" bordercolor="#444444" align="center">
+  <tr class="th_row">
+        <td colspan="2" width="340"><%= link_to '基本資料', new_member_path %></td>
+        <% status_arr.each do |s| %>
+            <td width="125"><%= link_to s[0].split('(')[0], :action => 'select_status', :s => s[1] %></td>
+        <% end %>    
+  </tr>
+<% 
+  name_list_arr = []
+  @members.each do |member| 
+  name_list_arr << member.name
+%>
+<% image_width = 120 %>
+  <tr>
+      <td width="<%=image_width%>">
+            <%= link_to image_tag( "portrait/#{member.get_picture}", :width => image_width, :border => 0 ), edit_member_path(member) %>
+      </td>
+      <td width="200" class="mem_basic_desr">
+            姓名：<%= link_to h(member.name), edit_member_path(member) %> <%=show_star_level( member )%><br/>
+            生日：<%= link_to member.get_birthday, edit_member_path(member) %><br/>
+            身分：<%= link_to show_member_career(member) + ' ' + (classification_arr.rassoc(member.classification)[0]).split('(')[0], edit_member_path(member) %><br/>
+            手機：<%= link_to member.mobile, edit_member_path(member) if member.mobile %><br/>
+            郵箱：<%= link_to truncate(member.email, 21, '..'), "mailto:#{h(member.email)}"  if member.email %><br/>
+            靈父母：<%= link_to member.get_introducer, edit_member_path(member) %><br/>
+            養父母：<%=link_to member.get_conductor, edit_member_path(member) %><br/>
+            <!--已修學分：<%= member.total_points %><br/>-->
+            最近上課：<%=link_to member.trace.last_class_date, edit_trace_path(member.trace) %> (<%=member.histories_count%>)<br/>
+            <!--下次上課：<%=check_how_to_show_next_class_date( member ) %><br/>-->
+        </td>
+        <% loop_ok_num = member.trace.status_num %>
+        <% loop_ok_num.times do %>
+            <td class="pass_ok_td"><%= image_tag "icon/pass_ok.png", :width => 40 %></td>
+        <% end %>
+        <td valign="top" class="trace_class_td" onclick="document.location.href='<%=edit_trace_path(member.trace)%>';">
+          <% if member.trace.last_class_title && !member.trace.last_class_title.empty? %>  
+            <p class="last_class_title">[<%=member.trace.last_class_teacher%>] <%=show_class_title(member.trace.last_class_title)%><%=show_class_feel(member.trace.class_feel)%></p>
+          <% end %>
+          <% if member.trace.last_class_title && !member.trace.last_class_title.empty? && member.trace.next_class_title && !member.trace.next_class_title.empty? && member.trace.next_class_date > Date.today %>
+            <hr class="dashed_line">
+          <% end %>
+          <% if member.trace.next_class_title && !member.trace.next_class_title.empty? && member.trace.next_class_date > Date.today %>
+            <p class="next_class_title">[<%=member.trace.next_class_teacher%>] <%=show_class_title(member.trace.next_class_title)%></p>
+          <% end %>
+        </td>
+        <% (status_arr.length-1-loop_ok_num).times do %>
+            <td align="center">&nbsp;</td>
+        <% end %>        
+  </tr>
+<% end %>
+</table>
+
+<p align="center">包含 [ <%=name_list_arr.join(", ")%> ] 共計 <%= @members.size %> 人 <%= show_student_count %></p>

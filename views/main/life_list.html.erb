@@ -1,0 +1,40 @@
+<h2><%= link_to '生活項目記錄表', :controller => 'main', :action => 'life_list' %><%=life_interest_link%></h2>
+<%= life_interests_bar%>
+<div style="font-size:0.8em;text-align:center;margin-top:-0.5em;margin-bottom:1em">共計 <%= @life_interest_records.size %> 筆，合计 <%= total_mins = @life_interest_records.sum {|r| r.change_value.to_i } %> 分鐘，约 <%= total_hours = sprintf("%0.2f", total_mins/60.0) %> 小时，相當於 <%= total_days = sprintf("%0.2f", total_mins/60.0/24.0) %> 天</div>
+
+<% form_tag ( '/main/mutli_update_is_enjoy', :method => :get, :name => 'mutli_select_form' ) do %>
+
+    <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse"  align="center" width="1200">
+      <tr class="th_row">
+        <% if @dont_show_check_box == 'yes' %>
+        <% else %>
+          <td></td>
+        <% end %>
+        <td width="100">日期</td>
+        <td width="70">分類</td>
+        <td>標題</td>
+        <td width="50">分鐘</td>
+        <td width="70"><%= @enjoy_life_title %></td>
+      </tr>
+
+      <% today = Date.today %>
+      <% @life_interest_records.each do |param_change| %>
+          <% if param_change.rec_date == today %>
+          	<tr style="background-color:#FFFFCC">
+          <% else %>		
+          	<tr onMouseOver="this.style.background='#EFEF88';" onMouseOut="this.style.background='#FFFFFF';">
+          <% end %>
+            <% if @dont_show_check_box == 'yes' %>
+            <% else %>
+              <td><%= check_box_tag 'pcids[]', param_change.id if !param_change.is_enjoy %></td>
+            <% end %>
+              <td align="center"><%=link_to param_change.rec_date, edit_param_change_path(param_change)%></td>
+              <td align="center"><%=link_to param_change.param.title, :controller => 'param_changes', :action => 'new', :param_id => param_change.param_id %></td>
+              <td><%=link_to param_change.title, edit_param_change_path(param_change) %></td>
+              <td align="right"><%= param_change.change_value.to_i %></td>
+              <td align="center"><%= image_submit_tag('icon/pass_ok.png', :width => 15, :height => 12) if param_change.is_enjoy %></td>
+            </tr>
+      <% end %>
+    </table>
+    <p align="center"><%= submit_tag "将所选资料列入#{@enjoy_life_title}" %></p>
+<% end %>

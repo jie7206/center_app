@@ -1,0 +1,31 @@
+<h2>活动紀錄表
+<span class="link_to_history">by</span>
+<% @core_leaders.each do |l| %>
+<span class="link_to_history"><%= link_to l.name, :action => 'teacher_history_list', :tname => l.name %></span>
+<% end %>
+</h2>
+
+<p align="center">共計 <%= @histories.size %> 筆 <%= show_student_count %></p>
+
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse" bordercolor="#444444" align="center" width="1200">
+  <tr class="th_row">
+    <td width="108">日期</td>
+    <td>課程名稱</td>
+  </tr>
+
+<%
+
+@histories.each do |history| 
+       
+%>
+  <tr valign="top">
+    <td align="center"><%=history.class_date%></td>    
+    <td><%=h history.class_title %></td>
+  </tr>
+<% 
+      
+end 
+%>
+</table>
+
+<p align="center">共計 <%= @histories.size %> 筆 <%= show_student_count %></p>

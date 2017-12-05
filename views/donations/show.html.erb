@@ -1,0 +1,33 @@
+<p>
+  <b>Member:</b>
+  <%=h @donation.member_id %>
+</p>
+
+<p>
+  <b>Catalog:</b>
+  <%=h @donation.catalog_id %>
+</p>
+
+<p>
+  <b>Accounting date:</b>
+  <%=h @donation.accounting_date %>
+</p>
+
+<p>
+  <b>Title:</b>
+  <%=h @donation.title %>
+</p>
+
+<p>
+  <b>Amount:</b>
+  <%=h @donation.amount %>
+</p>
+
+<p>
+  <b>Note:</b>
+  <%=h @donation.note %>
+</p>
+
+
+<%= link_to 'Edit', edit_donation_path(@donation) %> |
+<%= link_to 'Back', donations_path %>

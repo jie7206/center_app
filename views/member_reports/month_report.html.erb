@@ -1,0 +1,233 @@
+<h2><%= "#{@center_name}#{@year}月報表" %><%= month_report_bar %></h2>
+<%
+# 每个月份的宽度及标题栏比月份栏宽多少
+every_month_width = 150
+title_width_more = 30
+
+# 表格样式整体设定
+table_style = "cellpadding=\"1\" cellspacing=\"0\" style=\"font-size:1.1em;border-collapse: collapse\" bordercolor=\"#777\" align=\"center\" width=\"#{every_month_width*(@member_reports.size+1)+title_width_more}\""
+
+# 显示男女标题的内容
+@sex_th_bar = "<tr bgcolor=\"#efdb8d\"><td align=\"center\">&nbsp;男</td><td align=\"center\">&nbsp;女</td><td align=\"center\">&nbsp;總</td></tr>"
+# 回传统计数字与链接
+def make_show_text( member_report, ctype, age )
+                    mname1 = "m_#{ctype}_#{age}"
+                    mname0 = "f_#{ctype}_#{age}"
+                    key1= "m_#{ctype}_#{age}_ids"
+                    key0= "f_#{ctype}_#{age}_ids"
+                    value1 = member_report.send(mname1) ? member_report.send(mname1) : 0
+                    value0 = member_report.send(mname0) ? member_report.send(mname0) : 0
+                    mids1 = member_report.send(key1) ? member_report.send(key1) : ","
+                    mids0 = member_report.send(key0) ? member_report.send(key0) : ","
+                    values = value1 + value0  # 男女数相加
+                    mids = mids1 + mids0  # 男女ID相加
+                    title1 = "#{type_name(mname1)}\n#{members_name(mids1)}"
+                    title0 = "#{type_name(mname0)}\n#{members_name(mids0)}"
+                    title = "男女#{type_name("all_#{ctype}_#{age}")}\n#{members_name(mids)}"
+                    # 总会员人数统计(不包含新增会员、慕道学员、礼拜统计和大学生)
+                    if ctype != "new" and ctype != "sunday" and ctype != "supporter"
+                        if age != 'college'
+                            @m_member_count += value1 
+                            @f_member_count += value0
+                        end
+                    end
+                    # 此类会员人数统计
+                    @m_ctype_count += value1
+                    @f_ctype_count += value0
+                    # 如果有会员ID(mids)则提供链接，若没有则不提供
+                    if value1 > 0 and mids1.split(",").size > 0
+                        show_value1 = link_to ( "#{value1}", { :controller => :members, :action => :index_simple, :mids => mids1 }, {:target => "_blank", :title =>title1} )
+                    else
+                        show_value1 = "<font title='#{title1}'>#{value1}</font>"
+                    end
+                    if value0 > 0 and mids0.split(",").size > 0
+                        show_value0 = link_to ( "#{value0}", { :controller => :members, :action => :index_simple, :mids => mids0 }, {:target => "_blank", :title =>title0} )
+                    else
+                        show_value0 = "<font title='#{title0}'>#{value0}</font>"
+                    end
+                    if values > 0 and mids.split(",").size > 0
+                        show_values = link_to ( "#{values}", { :controller => :members, :action => :index_simple, :mids => mids }, {:target => "_blank", :title =>title} )
+                    else
+                        show_values = "<font title='#{title}'>#{values}</font>"
+                    end
+                    return [ show_value1, show_value0, show_values ]
+end
+
+# 将会员类别代码转化为中文说明
+def type_name( code )
+    chars = code.split("_")
+    sex = ctype = age = ""
+    case chars[0]
+        when 'm' : sex = '男'
+        when 'f' : sex = '女'
+    end     
+    case chars[1]
+        when 'core' : ctype = '正式'
+        when 'normal' : ctype = '準'
+        when 'registered' : ctype = '登記'
+        when 'inactive' : ctype = '休眠'
+        when 'new' : ctype = '新增'
+        when 'supporter' : ctype = '慕道'
+        when 'sunday' : ctype = '禮拜'
+    end
+    case chars[2]     
+        when 'student' : age = '學生'
+        when 'young' : age = '青年'
+        when 'adult' : age = '成人'
+        when 'old' : age = '60以上'
+        when 'college' : age = '大學生'
+    end
+    return "#{sex}#{ctype}#{age}" 
+end
+
+# 依照ID取出会员的姓名
+def members_name( mids )
+    result = ""
+    mids.split(",").each do |id|
+        @members.each do |m|
+           result += "#{m.name} #{m.mobile}\n"  if m.id == id.to_i
+        end
+    end
+    return result
+end
+
+# 如果没显示男女标题则显示(每一个月只显示一次) 
+def show_sex_th_bar
+    if not @sex_th_bar_output  
+        concat @sex_th_bar          
+        @sex_th_bar_output = true
+    end
+end
+
+# 统计数字与链接的HTML输出显示
+def show_tr( text_arr )
+    concat "<tr>
+              <td align=\"right\">#{text_arr[0]}</td>
+              <td align=\"right\">#{text_arr[1]}</td>
+              <td align=\"right\" bgcolor=\"#f9efc9\">#{text_arr[2]}</td>
+         </tr>" 
+end                   
+%>
+
+<table border="0" <%= table_style %>>
+
+<tr>
+
+<td width="<%= every_month_width+title_width_more %>" style="padding:0px" valign="top">
+    <table border="1" width="100%" <%= table_style %>>
+        <tr bgcolor="#acc6f6">
+            <td align="center" colspan="2">月&nbsp;&nbsp;&nbsp;份</td>
+        </tr>
+        <tr bgcolor="#efdb8d">
+            <td align="center">&nbsp;項&nbsp;目</td><td align="center">內&nbsp;容</td>
+        </tr>
+        <%
+            # 慕道學員(SUPPORTERS)
+            desr_arr = [ 
+                "即SUPPORTERS，還不是會員，但在學習原理中或支持我們運動的和平大使以及通過宗族彌賽亞祝福的參加夫婦"
+            ]
+            desr_index = 0
+            title_arr = %W(慕_道_學_員) %>
+            <%= render :partial => 'age_rows', :locals => { :desr_arr => desr_arr, :title_arr => title_arr } %>        
+        <%
+            # 会员分类标准说明
+            desr_arr = [ 
+                "每3個月至少出席6次公的活动，並至少做2次奉獻者(主体对象合并计算，18岁以下不计算奉献)",
+                "每3個月至少出席2次公的活动，並至少做1次奉獻者(主体对象合并计算，18岁以下不计算奉献)",
+                "每6個月至少出席1次公的活动，或至少做1次奉獻者(主体对象合并计算，18岁以下不计算奉献)",
+                "過去6個月没有出席任何公的活动或做任何奉獻者",
+                "本月入会并聽完原理，开始出席公的活动，並至少做1次奉獻者"
+            ]
+            title_arr = %W(A_正_式_會_員 B_凖_會_員 C_登_記_會_員 D_休_眠_會_員 新_增_會_員) %>    
+            <%= render :partial => 'age_rows', :locals => { :desr_arr => desr_arr, :title_arr => title_arr } %>
+        <tr bgcolor="#b6dde8">
+            <td align="center" colspan="2">&nbsp;&nbsp;A~D 會員總計</td>
+        </tr>
+        <%
+            # 活動成果计算方式
+            desr_arr = [ 
+                "禮拜出席人數的計算方式為每月最高兩次人數的平均"
+            ]
+            desr_index = 0
+            title_arr = %W(禮_拜) %>
+            <%= render :partial => 'age_rows', :locals => { :desr_arr => desr_arr, :title_arr => title_arr } %>
+    </table>
+
+</td>
+
+<% @member_reports.reverse.each do |member_report| %>
+<td width="<%= every_month_width %>" style="padding:0px" valign="top">
+    <table border="1" width="100%" <%= table_style %>>
+        <tr bgcolor="#acc6f6">
+        <td align="center" colspan="3"><%= link_to member_report.rec_date.month.to_s + "月", edit_member_report_path(member_report), :title => "#{member_report.rec_date} 记录" %></td>
+        </tr>
+
+        <!-- 变数初始化 -->
+        <%
+        @m_member_count = @f_member_count = 0  # 这个月A~D 會員總計总数
+        @m_ctype_count = @f_ctype_count = 0
+        @sex_th_bar_output = false  # 显示男女标题
+        show_sex_th_bar # 如果没显示男女标题则显示(每一个月只显示一次)                     
+        %>
+
+        <!-- 显示慕道學員 -->
+        <% ctype = "supporter" %>
+        <% %w(student young adult old).each do |age| # 年龄层 %>
+        <% # 回传统计数字与链接
+                show_text_arr = make_show_text( member_report, ctype, age )  
+                # 统计数字与链接的HTML输出显示
+                show_tr show_text_arr %>
+        <% end %>
+        <!-- 显示年龄层加总 -->
+        <tr bgcolor="#d7e4bc">
+            <td align="right"><%= @m_ctype_count %></td><td align="right"><%= @f_ctype_count %></td><td align="right"><%= @m_ctype_count+@f_ctype_count %></td>
+        </tr>
+        <!-- 显示大学生 -->
+        <% show_tr make_show_text( member_report, "supporter", "college" ) %>
+
+        <%  # 分类显示
+
+            %w(core normal registered inactive new).each do |ctype| # 会员分类
+                # 每個会员分类的和
+                @m_ctype_count = @f_ctype_count = 0
+                %w(student young adult old).each do |age| # 年龄层
+                    # 回传统计数字与链接
+                    show_text_arr = make_show_text( member_report, ctype, age )
+                    # 如果没显示男女标题则显示(每一个月只显示一次) 
+                    show_sex_th_bar 
+                    # 统计数字与链接的HTML输出显示
+                    show_tr show_text_arr %>
+<% end %>
+        <!-- 显示年龄层加总 -->
+        <tr bgcolor="#d7e4bc">
+            <td align="right"><%= @m_ctype_count %></td><td align="right"><%= @f_ctype_count %></td><td align="right"><%= @m_ctype_count+@f_ctype_count %></td>
+        </tr>
+        <!-- 显示大学生 -->
+        <% show_tr make_show_text( member_report, ctype, "college" ) %>       
+<% end %>
+
+        <!-- 显示單月加总(A~D會員總計) -->
+        <tr bgcolor="#b6dde8">
+            <td align="right"><%= @m_member_count %></td><td align="right"><%= @f_member_count %></td><td align="right"><%= @m_member_count+@f_member_count %></td>
+        </tr>
+
+        <!-- 显示礼拜活动 -->
+        <% ctype = "sunday" %>
+        <% %w(student young adult old).each do |age| # 年龄层 %>
+        <% # 回传统计数字与链接
+                show_text_arr = make_show_text( member_report, ctype, age )  
+                # 统计数字与链接的HTML输出显示
+                show_tr show_text_arr %>
+        <% end %>
+        <!-- 显示年龄层加总 -->
+        <tr bgcolor="#d7e4bc">
+            <td align="right"><%= @m_ctype_count %></td><td align="right"><%= @f_ctype_count %></td><td align="right"><%= @m_ctype_count+@f_ctype_count %></td>
+        </tr>
+        <!-- 显示大学生 -->
+        <% show_tr make_show_text( member_report, "sunday", "college" ) %> 
+</table>
+
+</td>
+<% end %>
+</tr>
+</table>

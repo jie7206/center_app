@@ -1,0 +1,38 @@
+<p>
+  <b>Param:</b>
+  <%=h @life_goal.param_id %>
+</p>
+
+<p>
+  <b>Title:</b>
+  <%=h @life_goal.title %>
+</p>
+
+<p>
+  <b>Minutes:</b>
+  <%=h @life_goal.minutes %>
+</p>
+
+<p>
+  <b>Resource url:</b>
+  <%=h @life_goal.resource_url %>
+</p>
+
+<p>
+  <b>Is pass:</b>
+  <%=h @life_goal.is_pass %>
+</p>
+
+<p>
+  <b>Pass date:</b>
+  <%=h @life_goal.pass_date %>
+</p>
+
+<p>
+  <b>Order num:</b>
+  <%=h @life_goal.order_num %>
+</p>
+
+
+<%= link_to 'Edit', edit_life_goal_path(@life_goal) %> |
+<%= link_to 'Back', life_goals_path %>

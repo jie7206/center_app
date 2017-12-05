@@ -1,0 +1,14 @@
+<% textarea_size = "12x50" %>
+<hr/><p/>
+<table>
+  <tr>
+    <td>姓名：<br/><%= text_area_tag 'name_list', @name_list_arr.join("\n"), :size => textarea_size, :onclick => "this.select();" %></td>
+    <td>性別：<br/><%= text_area_tag 'sex_list', @sex_list_arr.join("\n"), :size => textarea_size, :onclick => "this.select();" %></td>
+    <td>生日：<br/><%= text_area_tag 'birthday_list', @birthday_list_arr.join("\n"), :size => textarea_size, :onclick => "this.select();" %></td>
+    <td>類型：<br/><%= text_area_tag 'classification_list', @classification_list_arr.join("\n"), :size => textarea_size, :onclick => "this.select();" %></td>
+    <td>年齡層：<br/><%= text_area_tag 'name_list', @agelevel_list_arr.join("\n"), :size => textarea_size, :onclick => "this.select();" %></td>
+    <td>大學生：<br/><%= text_area_tag 'college_list', @college_list_arr.join("\n"), :size => textarea_size, :onclick => "this.select();" %></td>
+    <td>備註：<br/><%= text_area_tag 'note_list', @note_list_arr.join("\n"), :size => textarea_size, :onclick => "this.select();" %></td>
+    <td valign="top">統計：<br/><%#= text_area_tag 'summary', "核心會員人數 0-18男(#{r[:m_core_student]})女(#{r[:f_core_student]})；19-39男(#{r[:m_core_young]})女(#{r[:f_core_young]})；40以上男(#{r[:m_core_adult]})女(#{r[:f_core_adult]})；大學生男(#{r[:m_core_college]})女(#{r[:f_core_college]})\n一般會員人數 0-18男(#{r[:m_normal_student]})女(#{r[:f_normal_student]})；19-39男(#{r[:m_normal_young]})女(#{r[:f_normal_young]})；40以上男(#{r[:m_normal_adult]})女(#{r[:f_normal_adult]})；大學生男(#{r[:m_normal_college]})女(#{r[:f_normal_college]})\n新進人員人數 0-18男(#{r[:m_new_student]})女(#{r[:f_new_student]})；19-39男(#{r[:m_new_young]})女(#{r[:f_new_young]})；40以上男(#{r[:m_new_adult]})女(#{r[:f_new_adult]})；大學生男(#{r[:m_new_college]})女(#{r[:f_new_college]})\n疏離會員人數 0-18: #{r[:m_leave_student]+r[:f_leave_student]} ;19-39:  #{r[:m_leave_young]+r[:f_leave_young]} ；40以上: #{r[:m_leave_adult]+r[:f_leave_adult]}", :size => "80x20" %></td>
+  </tr>
+</table>

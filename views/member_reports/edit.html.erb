@@ -1,0 +1,24 @@
+<h1>編輯人員報表</h1>
+
+<% form_for(@member_report) do |f| %>
+  <%= f.error_messages %>
+
+  <p>地區：<%= select("member_report", "area_id", area_arr.collect {|a| [ a[0], a[1] ] }, { :include_blank => false }) %></p>
+  <p>資料日期：<%= f.date_select :rec_date %></p>
+  <p>祝福家庭：<%= f.text_field :family_count, :size => 3 %></p>
+  <p>学生会员：<%= f.text_field :student_member_count, :size => 3 %></p>
+  <p>职工会员：<%= f.text_field :worker_member_count, :size => 3 %></p>
+  <p>小学二世：<%= f.text_field :generation2_1_count, :size => 3 %></p>
+  <p>中学二世：<%= f.text_field :generation2_2_count, :size => 3 %></p>
+  <p>学生学员：<%= f.text_field :student_new_count, :size => 3 %></p>
+  <p>职工学员：<%= f.text_field :worker_new_count, :size => 3 %></p>
+  <p>可受祝福：<%= f.text_field :blessedable_count, :size => 3 %></p>
+  <p>献身领导：<%= f.text_field :leader_count, :size => 3 %></p>
+  <p>献身会员：<%= f.text_field :staff_count, :size => 3 %></p>
+  <p><%= f.submit '儲存修改' %></p>
+
+<% end %>
+
+<% if session[:role] == 'admin' %>  
+  <p class="del_link"><%= link_to '刪除這筆報表', @member_report, :confirm => "你確定要刪除這筆報表?", :method => :delete %></p>
+<% end %>

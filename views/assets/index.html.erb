@@ -1,0 +1,18 @@
+<h2><%= link_to '資產類目一覽表', new_asset_path %></h2>
+
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse"  align="center" width="400">
+  <tr class="th_row">
+    <td>名稱</td>
+    <td>代碼</td>
+  </tr>
+
+<% @assets.each do |asset| %>
+  <tr align="center">
+      
+            <td><%= link_to asset.title, edit_asset_path(asset) %></td>
+                        <td><%= asset.code %></td>
+      </tr>
+<% end %>
+</table>
+
+<p>&nbsp;</p>

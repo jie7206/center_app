@@ -1,0 +1,31 @@
+<% form_for(@donation) do |f| %>
+<%= f.error_messages %>
+  <p>
+    人員姓名：<%= text_field_tag :member_name, @donation_member_name, :size => 7, :onclick => 'this.select();' %> <%#= compose_select_tag( 'donation', Member.all(:order => "name").map {|m| m.name}, 'member_name' ) %>
+    <%= compose_select_tag( 'donation', Donation.all( :order => "id desc", :limit => 100, :include => :member, :group => "member_id" ).map {|d| d.member.name}, 'member_name' ) %>
+  </p>
+  <p>
+    所屬科目：<%= f.select :catalog_id, donation_catalog_arr %>
+  </p>
+  <p>
+    會計日期：<%= f.date_select :accounting_date, :use_month_numbers => true %>
+  </p>
+  <p>
+    奉獻金額：<%= f.text_field :amount, :style => "width:168px", :onclick => "this.select();" %>
+  </p>  
+  <p>
+    奉獻標題：<%= f.text_field :title, :style => "width:168px" %>
+  </p>
+  <p>
+    備註說明：<%= f.text_field :note, :style => "width:168px", :onclick => "this.select();" %>
+  </p>
+
+  <% if session[:role] == 'admin' %>
+    <table>
+      <tr>
+        <td><%= f.submit submit_title %></td><td>&nbsp;</td><td><%= link_to '取消並返回主頁', :action => 'index', :data_field => 'catalog_id', :data_value => 1 %></td>
+      </tr>
+    </table>
+  <% end %>
+
+<% end %>

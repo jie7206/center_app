@@ -1,0 +1,8 @@
+<% form_for(@life_record) do |f| %>
+<%= f.error_messages %>
+  <p>項目：<%= f.select :life_item_id, life_item_ids %></p>
+  <p>日期：<%= f.text_field :rec_date, :size => 8 %></p>
+  <p>分鐘：<%= f.text_field :used_minutes, :size => 8, :onclick => "this.select();" %> <%=  f.check_box  :is_not_goal  %> 不列入目標</p>
+  <p>備註：<br/><%= f.text_area :memo, :size => "30x8" %></p>
+  <p><%= f.submit submit_title %>&nbsp;&nbsp;<%= button_to_function '返回前頁', "history.back();" %></p>
+<% end %>

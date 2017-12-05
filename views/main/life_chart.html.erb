@@ -1,0 +1,121 @@
+<h2><%= link_to '生活項目統計圖表', {:controller => :life_goals}, {:title => show_total_mins_and_days_of_life_interests_record(@histories)} %><%=life_interest_link %><%=cal_retire_day_link%></h2>
+<%= life_interests_bar %>
+<%= show_my_motto %>
+<%  table_width = date_table_width = value_of("life_chart_table_width")
+    table_margin_left = 0 %>
+<%= show_ori_image_frame("left:212px; bottom:10px;") %><!--显示用frame(DIV) -->
+<%= render :partial => 'main_statistics_table', :locals => { :table_width => table_width, :table_margin_left => table_margin_left } %>
+
+<% ################### 加入收支试算表(开始) ###################
+# 取出接案收入的参数列表
+build_params_from_pname #'params_of_retire_with_work2'
+# 设定最终日
+cal_end_date = Date.today+value_of("how_many_months_show_in_life_chart_for_cal_retire_day").to_i.month
+params[:t16_y] = cal_end_date.year
+params[:t16_m] = cal_end_date.month
+params[:t16_d] = cal_end_date.day
+# 设定不显示标题
+params[:show_retire_table_title] = nil %>
+<%= render :partial => 'cal_retire_table' %>
+<% ################### 加入收支试算表(结束) ################### %>
+
+<table width="<%=date_table_width%>" border="1" cellpadding="3" cellspacing="0" style="border-collapse: collapse;margin-top:30px" bordercolor="#444444" align="center">
+<%
+    output_html = "<tr>\n"
+    td_width = 150
+    td_height = 150
+    cols_per_row = 7          #每一列要放多少儲存格
+    date_font_size = "0.5em"  #每個儲存格日期顯示的字體大小
+    td_through_count = 1      #一邊Loop一邊增加，才能計算到底能不能被除盡
+    td_has_content_count = 0  #計算該列有多少儲存格已有內容
+    td_supply = ''            #補齊儲存格的數量以避免表格缺線難看
+    total_mins_of_day = {}
+
+      @dates.each do |date|
+          content = []
+          total_mins_of_this_day = 0
+          @histories.each do |h|
+            if h.rec_date.to_s(:db) == date
+              content << "<a href='/param_changes/#{h.id}/edit' class='no_bg' title='#{h.title}'><span class='histories_class_student'>#{trip_title(h.param.title)} #{add_zero(h.change_value.to_i)}分</a></span>"
+              total_mins_of_this_day += h.change_value
+            end
+          end
+          @names << content
+          total_mins_of_day[date] = total_mins_of_this_day
+      end
+              
+    (0...@dates.size).each do |n|
+        d = @dates[n].to_date
+        items_count_in_each_date = @names[n].size
+        count_str = items_count_in_each_date > 0 ? "<hr class='dashed_line'><font size='0.1em'>合計#{items_count_in_each_date}項<br/>共#{total_mins_of_day[d.to_s].to_i}分 約#{sprintf("%0.1f", total_mins_of_day[d.to_s]/60)}小時</font>" : ''
+        hr = count_str.empty? ? '<div style="margin:2px"/>' : "<hr class='dashed_line'>"
+
+        # 如果全部都完成後，將其重置為全部沒有完成
+        check_if_all_pass_then_reset
+
+        #以下为显示待办事项的代码###########################################################
+        next_todo = LifeGoal.first(:order=>"order_num",:conditions=>["is_todo = ? and is_pass = ? and is_show = ?",true,false,true])
+        if next_todo
+          todo_remain_mins = next_todo.minutes - next_todo.completed_minutes
+          next_todo_text = "#{next_todo.title} #{todo_remain_mins}分鐘"
+          next_todo_link = link_to( next_todo_text, {:controller => 'param_changes', :action => 'new', :param_id => next_todo.param_id, :param_title => next_todo.title, :change_value => todo_remain_mins, :life_goal_id => next_todo.id}, {:class => "todo_warn"} )
+          @next_todo_str = (d == Date.today) ? "#{hr}<font class='todo_list_warn_text'>眼前待辦：<br/>#{next_todo_link}</font>" : ''
+        else
+          @next_todo_str = ''
+        end
+        ###################################################################################        
+
+        #以下为显示下個目標的代码###########################################################
+        if value_of('if_show_life_goals').to_i > 0 #生活圖表是否显示下个目标
+          if value_of('life_goals_use_time_mode').to_i > 0 #生活圖表是否依照现在时间显示下个目标
+            next_goal_hit = "現在可做："
+            time_mode_str = " and begin_time <= '#{Time.now.strftime("%H:%M")}' and end_time >= '#{Time.now.strftime("%H:%M")}'"
+          else
+            next_goal_hit = "下個目標："
+            time_mode_str = ''
+          end
+          next_goal_conditions = "is_todo = ? and is_pass = ? and is_show = ?"
+          next_goal = LifeGoal.first(:order=>"order_num",:conditions => [next_goal_conditions+time_mode_str,false,false,true] )
+          # 如果该时段没有可做的项目,则重头寻找还没完成的项目
+          if not next_goal
+            # next_goal = LifeGoal.first(:order=>"order_num",:conditions => [next_goal_conditions,false,false,true] )
+          end
+          if d == Date.today and Time.now.strftime("%H:%M") > value_of('sleep_time')
+            @next_goal_str = "#{hr}<font class='todo_list_warn_text'>现在该去睡觉了！</font>"
+          elsif next_goal
+            # 显示最近完成的日期 (#{day_diff('2016-01-10').to_s}天前)
+            show_recent_completed_date = ''
+            if next_goal.pass_date
+
+              show_recent_completed_date = "最近完成：#{next_goal.pass_date} (#{day_diff(next_goal.pass_date,Time.now)}天前) "
+            end
+            remain_mins = next_goal.minutes - next_goal.completed_minutes
+            next_goal_text = "#{next_goal.title} #{remain_mins}分鐘"
+            next_goal_link = link_to( next_goal_text, {:controller => 'param_changes', :action => 'new', :param_id => next_goal.param_id, :param_title => "#{next_goal.title}", :change_value => remain_mins, :life_goal_id => next_goal.id}, { :class => "goal_warn", :title => "#{show_recent_completed_date}区间：#{next_goal.begin_time} ~ #{next_goal.end_time}" } )
+            pass_next_goal_link = link_to( 'PASS', {:controller => 'life_goals', :action => 'pass', :id => next_goal.id}, :title => '跳过这个项目')
+            @next_goal_str = (d == Date.today) ? "#{hr}<font class='life_chart_warn_text'>#{next_goal_hit}<br/>#{next_goal_link} #{pass_next_goal_link}</font>" : ''
+          else
+            @next_goal_str = ''
+          end
+        end
+        ###################################################################################        
+
+        content = "<table border='0' cellpadding='3' cellspacing='0' style='border-collapse: collapse' bordercolor='#444444' width='100%'>\n<tr align='center'>\n<td class='#{d == Date.today ? 'th_row_red' : 'th_row'}' style='font-size:#{date_font_size}'>#{show_chinese_full_date(d)}</td>\n</tr><tr><td valign='top'>#{@names[n].join('<br/>')}#{count_str}
+          #{@next_todo_str}
+          #{@next_goal_str}          
+          </td></tr></table>"
+        td_html = "<td width='#{td_width}' height='#{td_height}' valign='top'>#{content}</td>\n"
+        if td_through_count % cols_per_row == 0
+            output_html = output_html + td_html + "</tr>\n<tr>\n"
+            td_has_content_count = 0
+        else
+            output_html = output_html + td_html
+            td_has_content_count += 1
+        end
+        td_through_count += 1
+    end
+    (td_has_content_count...cols_per_row).each {td_supply += "<td>&nbsp;</td>\n"} if @dates.size > cols_per_row && td_has_content_count > 0
+    output_html += td_supply + "</tr>"
+%>
+    <%=output_html%>
+</table>

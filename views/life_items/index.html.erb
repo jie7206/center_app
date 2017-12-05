@@ -1,0 +1,46 @@
+<h2><%= link_to '生活目標管理表', '/life_items' %><%= life_links_bar %></h2>
+
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse"  align="center" width="90%">
+  <tr class="th_row">
+    <td width="40">編號</td>
+    <!-- td width="100"><%= link_to '中心人物', new_life_item_path %></td -->
+    <td width="">類別</td>
+    <td width=""><%= link_to '目的', new_life_item_path %></td>
+    <td width=""><%= link_to '內容', new_life_item_path %></td>
+    <td width="60">日總分</td>
+    <td width="110">開始日期</td>
+    <td width="110">結束日期</td>
+    <td width="50">天數</td>
+    <td width="">調序</td>
+    <td width="">完成與否</td>
+    <td>&nbsp;</td>         
+  </tr>
+  
+<% 
+i = 1
+@life_items.each do |life_item| 
+  last_life_record = life_item.life_records.sort { |y,x| x.rec_date <=> y.rec_date }[0]
+  fast_create_str = last_life_record != nil ? life_item.id.to_s+"::"+last_life_record.used_minutes.to_s+"::"+last_life_record.memo : life_item.id.to_s+"::"+"20::備註"
+    
+%>
+  <tr>
+    <td align="center"><%= i %></td>
+    <!--td><%= link_to life_item.name, edit_life_item_path(life_item) %></td-->
+    <td align="center"><%= life_item.life_catalog.name %></td>
+    <td><%= link_to truncate(life_item.main_goal, 40, ".."), edit_life_item_path(life_item) %></td>
+    <td><%= link_to truncate(life_item.main_content, 40, ".."), edit_life_item_path(life_item) %></td>
+    <td align="center"><%= life_item.goal_minutes %></td>
+    <td align="center"><%= life_item.begin_date %></td>
+    <td align="center"><%= life_item.end_date %></td>
+    <td align="center"><%= life_item.total_days %></td>
+    <td align="center"><%= link_to '↑', {:action => 'order_up', :id => life_item} %> <%= link_to '↓', {:action => 'order_down', :id => life_item} %></td>
+    <td align="center"><%= image_tag("icon/pass_ok.png", :width => 20) if life_item.is_finished %></td>
+    <td align="center"><%= link_to image_tag('icon/trash.png', :width => 24, :border => 0 ), life_item, :confirm => "你確定要刪除這個目標?", :method => :delete %></td>
+  </tr>
+<% 
+  i=i+1
+end 
+%>
+</table>
+
+<p>&nbsp;</p>

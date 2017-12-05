@@ -1,0 +1,30 @@
+<h1>Listing traces</h1>
+
+<table>
+  <tr>
+    <th>Member</th>
+    <th>Status num</th>
+    <th>Last class date</th>
+    <th>Last class title</th>
+    <th>Next class date</th>
+    <th>Next class title</th>
+  </tr>
+
+<% @traces.each do |trace| %>
+  <tr>
+    <td><%=h trace.member_id %></td>
+    <td><%=h trace.status_num %></td>
+    <td><%=h trace.last_class_date %></td>
+    <td><%=h trace.last_class_title %></td>
+    <td><%=h trace.next_class_date %></td>
+    <td><%=h trace.next_class_title %></td>
+    <td><%= link_to 'Show', trace %></td>
+    <td><%= link_to 'Edit', edit_trace_path(trace) %></td>
+    <td><%= link_to 'Destroy', trace, :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New trace', new_trace_path %>

@@ -1,0 +1,53 @@
+<p>
+  <b>Title:</b>
+  <%=h @activity.title %>
+</p>
+
+<p>
+  <b>Begin date:</b>
+  <%=h @activity.begin_date %>
+</p>
+
+<p>
+  <b>End date:</b>
+  <%=h @activity.end_date %>
+</p>
+
+<p>
+  <b>Place:</b>
+  <%=h @activity.place %>
+</p>
+
+<p>
+  <b>People count:</b>
+  <%=h @activity.people_count %>
+</p>
+
+<p>
+  <b>Manager:</b>
+  <%=h @activity.manager %>
+</p>
+
+<p>
+  <b>Teacher:</b>
+  <%=h @activity.teacher %>
+</p>
+
+<p>
+  <b>Achievement:</b>
+  <%=h @activity.achievement %>
+</p>
+
+<p>
+  <b>Criticism:</b>
+  <%=h @activity.criticism %>
+</p>
+
+<p>
+  <b>Pictures:</b>
+  <%=h @activity.pictures %>
+</p>
+
+
+<%= link_to 'Edit', edit_activity_path(@activity) %> |
+<%= link_to 'Back', activities_path %>

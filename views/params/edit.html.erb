@@ -1,0 +1,5 @@
+<h1>參數編輯</h1>
+<%= render :partial => 'form', :locals => { :submit_title => '儲存修改' } %>
+<p>創建時間：<%= @param.created_at  %></p>
+<p>更新時間：<%= @param.updated_at %></p>
+<p class="del_link"><%= link_to '刪除此參數', @param, :confirm => "警告!!參數刪除後，可能會導致某些程式無法執行!!\n你確定要刪除參數#{@param.name}嗎?", :method => :delete %></p>

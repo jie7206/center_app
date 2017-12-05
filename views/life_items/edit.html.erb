@@ -1,0 +1,3 @@
+<h1>編輯內容</h1>
+<%= render :partial => 'form', :locals => { :submit_title => '儲存修改' } %>
+<p><%= link_to ' 刪除這個內容 ', @life_item, :confirm => "你確定要刪除這個內容?", :method => :delete %></p>

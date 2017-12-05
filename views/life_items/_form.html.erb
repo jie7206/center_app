@@ -1,0 +1,14 @@
+<% form_for(@life_item) do |f| %>
+<%= f.error_messages %>
+<p>類別名稱：<%= f.select :life_catalog_id, life_catalog_ids %></p>
+<p>中心人物：<%= f.text_field :name, :size => 21 %></p>
+<p>條件目的：<br/><%= f.text_area :main_goal, :size => '40x2' %></p>
+<p>條件內容：<br/><%= f.text_area :main_content, :size => '40x2' %></p>
+<p>每日時間：總計 <%= f.text_field :goal_minutes, :size => 4, :onclick => "this.select();" %> 分鐘</p>
+<p>開始日期：<%= f.text_field :begin_date, :size => 15 %></p>
+<p>結束日期：<%= f.text_field :end_date, :size => 15 %></p>
+<p>持續期間：總計 <%= f.text_field :total_days, :size => 10 %> 天</p>
+<p>排序號碼：<%= f.text_field :order_num, :size => 6 %></p>
+<p><%= f.check_box :is_finished %> 此條件已順利完成</p>
+<p><%= f.submit submit_title %>&nbsp;&nbsp;<%= button_to_function '返回前頁', "history.back();" %></p>
+<% end %>

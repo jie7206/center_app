@@ -1,0 +1,11 @@
+<br/>
+<h2>編輯培訓課表HTML原始碼</h2>
+
+<% if session[:login_role] == 'admin' %>
+  <% form_tag :action => 'update_week_schedule_html' do %>
+    <p align="center"><br/><%= text_area_tag :week_schedule_html, @output_html, :size => "130x20", :wrap => "off", :style => "font-size: 0.95em" %></p>
+    <p align="center"><%= submit_tag '更新培訓課表HTML原始碼' %></p>
+  <% end %>
+<% end %>
+
+<p>&nbsp;</p><p>&nbsp;</p>
