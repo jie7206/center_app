@@ -337,7 +337,7 @@
             <td>#{@icbc_deposit_total}</td>
             <td>#{@tw_deposit_total}</td>
             <td title=\"存款總值：#{@sum_of_deposit_NTD} NTD\n資產淨值：#{@net_asset_value_NTD.ntd_to_rmb} RMB\">#{@net_asset_value_NTD}</td>
-            <td title=\"貸款月息：#{@last_month_ntd_interest_value} NTD(#{@last_month_ntd_interest_value.ntd_to_rmb} RMB)\">#{@_this_retire_month_annuity}</td>
+            <td title=\"RMB/月\">#{@_this_retire_month_annuity}</td>
         </tr>"
     end
 
@@ -375,28 +375,17 @@
     # 如果工行或台币有一方为负数，则自动汇款补充(预设汇款一半过去，所以ratio = 0.5)
     def check_and_update_minus_deposit( ratio = 0.5 )
         # 1) 如果工行为负数而台币为正(必须大于汇款手续费)
-        if @icbc_deposit_total < 0 and @tw_deposit_total > 0 and @tw_deposit_total.ntd_to_rmb > @value_of_exlost_and_bank_fee
-            # 由台币汇款给工行
-            remit_amount = ((@tw_deposit_total - @value_of_exlost_and_bank_fee.rmb_to_ntd)*ratio).to_i
+        if @icbc_deposit_total < 0 # and @tw_deposit_total > 0 and @tw_deposit_total.ntd_to_rmb > @value_of_exlost_and_bank_fee
+            # 由台币汇款给工行，直到工行为正数(+100以保障为正)
+            remit_amount = (@icbc_deposit_total.abs.rmb_to_ntd + 100).to_i
             @icbc_deposit_total += remit_amount.ntd_to_rmb
             oh "以台幣存款匯款至工行 #{remit_amount.ntd_to_rmb} RMB"
             @tw_deposit_total -= remit_amount
             oh "台幣存款減少 #{remit_amount} NTD"
-            if @add_exlost_and_bank_fee
+            if shound_pay_exlost_and_bank_fee
                 @tw_deposit_total -= @value_of_exlost_and_bank_fee.rmb_to_ntd
                 oh "台幣存款減少 #{@value_of_exlost_and_bank_fee.rmb_to_ntd} NTD (匯差和手續費)"
-            end
-        # 2) 如果台币为负数而工行为正(必须大于汇款手续费)
-        elsif @tw_deposit_total < 0 and @icbc_deposit_total > 0 and @icbc_deposit_total > @value_of_exlost_and_bank_fee
-            # 由工行汇款给台币
-            remit_amount = ((@icbc_deposit_total - @value_of_exlost_and_bank_fee)*ratio).to_i
-            @tw_deposit_total += remit_amount.rmb_to_ntd
-            oh "以工行匯款至台幣存款 #{remit_amount.rmb_to_ntd} NTD"
-            @icbc_deposit_total -= remit_amount
-            oh "工行存款減少 #{remit_amount} RMB"
-            if @add_exlost_and_bank_fee
-                @icbc_deposit_total -= @value_of_exlost_and_bank_fee
-                oh "工行存款減少 #{@value_of_exlost_and_bank_fee} RMB (匯差和手續費)"
+                @this_date_already_pay_bank_fee = true # 一天只需汇一次
             end
         end
     end
@@ -601,9 +590,10 @@
         elsif @value_of_JinRuYi_loan > 0 and @icbc_deposit_total > @value_of_exe_repay_JinRuYi_loan and @this_date.month < 10 and @this_date.day == 28
                 # 2-1) 偿还利息(一定要还)
                     # 如果计算匯差和手續費，则先扣除之
-                    if @add_exlost_and_bank_fee
+                    if shound_pay_exlost_and_bank_fee
                         @icbc_deposit_total -= @value_of_exlost_and_bank_fee 
                         oh "以工行償還金如意貸款的匯差和手續費 #{@value_of_exlost_and_bank_fee} RMB"
+                        @this_date_already_pay_bank_fee = true # 一天只需汇一次
                     end
                     # 以工行存款缴交
                     @icbc_deposit_total -= @_this_date_JinRuYi_loan_interest.ntd_to_rmb
@@ -860,12 +850,50 @@
         end
     end
 
-    # 计算月生活费算法中上个月台币贷款的利息
-    def last_month_ntd_interest
-        if @net_asset_value_NTD < 0
-            return (@net_asset_value_NTD.abs*@interest_rate_of_JinRuYi_loan/100.0/12).to_i
+    # 计算今天退休且解约所有保险，那么每个月能有多少生活费
+    def cal_retire_month_annuity
+        # 距离金如意每三年還利息最终年还有多少个月？
+        remain_life_months = ((DateTime.parse("#{@end_year_of_JinRuYi_money_back}-12-31") - DateTime.parse(@this_date.to_s))/31).to_i
+        remain_life_months = 1 if remain_life_months == 0
+        # 到金如意還利息最终年还有多少次还本(每三年领一次)？
+        jinruyi_annuity_times = (@end_year_of_JinRuYi_money_back-@this_date.year)/3+1
+        # 未来能领的金如意年金总额
+        jinruyi_annuity_total = @value_of_JinRuYi_money_back * jinruyi_annuity_times
+        # 解约金领取总额
+        total_taiping_money_back = terminate_TaiPing_insurances(@this_date)
+        # 月生活费算法：(今日資產淨值+太平解约金+未来能领的金如意年金)/剩多少个月
+        @_this_retire_month_annuity = ((@net_asset_value_NTD+total_taiping_money_back.rmb_to_ntd+jinruyi_annuity_total)/remain_life_months).ntd_to_rmb
+    end 
+
+    # 增加一笔新的金如意贷款
+    def add_new_jinruyi_load(begin_date,load_amount)
+        # 若贷款本金不为零，则连本带利滚入新贷款
+        if @value_of_JinRuYi_loan > 0
+            @value_of_JinRuYi_loan += load_amount + @_this_date_JinRuYi_loan_interest
+        elsif @value_of_JinRuYi_loan == 0
+            @value_of_JinRuYi_loan += load_amount
+        end                    
+        # 更新贷款起始日期
+        @begin_date_of_JinRuYi_loan_interest = begin_date
+    end
+
+    # 如果经过处理，存款总额仍然为负值，则自动执行贷款，并让总存款为正
+    def auto_load_from_jinruyi_if_net_minus
+        if @tw_deposit_total < 0
+            loan_from_jinruyi = @tw_deposit_total.abs + 1 # +1保证贷款后为正
+            # 增加一笔新的金如意贷款
+            add_new_jinruyi_load @this_date, loan_from_jinruyi
+            # 将贷款得来的钱存入台币帐户使之为正
+            @tw_deposit_total += loan_from_jinruyi
+            oh "台幣为负值故需執行贷款 #{loan_from_jinruyi} NTD\n金如意贷款起算日更新為 #{@begin_date_of_JinRuYi_loan_interest}"
+        end
+    end
+
+    def shound_pay_exlost_and_bank_fee
+        if @add_exlost_and_bank_fee and !@this_date_already_pay_bank_fee
+            return true
         else
-            return 0
+            return false
         end
     end
 
@@ -898,6 +926,8 @@ concat show_table_head
     @_show_this_date = @add_show_everyday_result ? true : false   
     # 这一日的操作说明
     @_this_date_note = ""
+    # 每一日只需计算一次汇款就可以
+    @this_date_already_pay_bank_fee = false
     # 这一日的計算距離表尾(最后一日)的日數
     @_this_date_and_plan_end_date_diff_num = @end_date_of_cal_plan - @this_date + 1
     # 如果今天退休且解约所有保险，那么每个月能有多少生活费
@@ -950,7 +980,7 @@ concat show_table_head
     #【既有負債】新光金如意保單貸款
     deal_repay_JinRuYi_loan if @add_repay_JinRuYi_loan
     # 偿还新光金如意保單貸款时計算匯差和手續費
-    deal_exlost_and_bank_fee if @add_exlost_and_bank_fee
+    # deal_exlost_and_bank_fee if shound_pay_exlost_and_bank_fee
     # 保留在台保險
     deal_XinGuang_healths if @add_XinGuang_healths
     #【既有負債】太平人壽的保單貸款
@@ -969,21 +999,10 @@ concat show_table_head
     deal_UC_donation if @add_UC_donation
     # 标示离职日期以便快速定位
     oh "標示今日為最後一天擔任公職" if @this_date == @end_date_of_work1
-
-    ######################################################
     # 计算今天退休且解约所有保险，那么每个月能有多少生活费
-    # 距离金如意每三年還利息最终年还有多少个月？
-    remain_life_months = ((DateTime.parse("#{@end_year_of_JinRuYi_money_back}-12-31") - DateTime.parse(@this_date.to_s))/31).to_i
-    remain_life_months = 1 if remain_life_months == 0
-    # 到金如意還利息最终年还有多少次还本(每三年领一次)？
-    jinruyi_annuity_times = (@end_year_of_JinRuYi_money_back-@this_date.year)/3+1
-    # 未来能领的金如意年金总额
-    jinruyi_annuity_total = @value_of_JinRuYi_money_back * jinruyi_annuity_times
-    # 解约金领取总额
-    total_taiping_money_back = terminate_TaiPing_insurances(@this_date)
-    # 月生活费算法：(今日資產淨值+太平解约金+未来能领的金如意年金-上个月台币贷款的利息)/剩多少个月
-    @last_month_ntd_interest_value = last_month_ntd_interest
-    @_this_retire_month_annuity = ((@net_asset_value_NTD+total_taiping_money_back.rmb_to_ntd+jinruyi_annuity_total-last_month_ntd_interest)/remain_life_months).ntd_to_rmb
+    cal_retire_month_annuity
+    # 如果经过处理，存款总额仍然为负值，则自动执行贷款，并让总存款为正以维持生活
+    auto_load_from_jinruyi_if_net_minus
 
     ################################## 处理并计算各个选项[结束] ######################################     
 
