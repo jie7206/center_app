@@ -37,6 +37,7 @@ class DonationsController < ApplicationController
   def new
     @donation = Donation.new
     @donation_member_name = ""
+=begin    
     if !session[:donation_data].nil?
       @donation.member_id =         session[:donation_data][:member_id]
       @donation.catalog_id =        session[:donation_data][:catalog_id]
@@ -47,7 +48,7 @@ class DonationsController < ApplicationController
       @donation.title = ""
       @donation.id = nil
     end    
-
+=end
     respond_to do |format|
       format.html # new.html.erb
       format.xml  { render :xml => @donation }
@@ -69,8 +70,8 @@ class DonationsController < ApplicationController
 
     respond_to do |format|
       if member and @donation.save
-        session[:donation_data] = @donation
-        session[:donation_data][:member_name] = params[:member_name]
+        #session[:donation_data] = @donation
+        #session[:donation_data][:member_name] = params[:member_name]
         flash[:notice] = "姓名為#{params[:member_name]}且ID為#{@donation.id.to_s}的奉獻紀錄已新增成功!"
         format.html { redirect_to :action => "new" }
         format.xml  { render :xml => @donation, :status => :created, :location => @donation }

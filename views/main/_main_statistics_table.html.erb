@@ -37,12 +37,13 @@
 %>
 
     <td class='th_row'>已經多活</td><td align="center"><%= link_to day_diff( start_count_date, Time.now - 8.hours ), '#', {:title =>  "从#{start_count_date}开始计算", :target => "_self"} %> 天</td>
-    <td class='th_row'>退休還剩</td><td align="center"><%= link_to @retire_date_diff, '#', :title => content_of("retire_date") %> 天 (<%= sprintf("%0.1f",@retire_date_diff/365.0) %>年)</td>
+    <!--
     <td class='th_row'><%= link_to '無双清静', {:controller => 'main', :action => 'set_three_control_then_free_to_today'}, {:title => "按下后归零重计，目前最高记录为#{value_of('max_record_days_for_three_control')}天，下一个目标为#{value_of('three_control_next_goal')}天(#{value_of('three_control_then_free_start_date').to_date+value_of('three_control_next_goal').to_i})，请继续加油！勿忘初衷..."} %></td><td align="center"><%= link_to add_zero( @free_life_from, 4 ), '#', :title => "#{truncate(content_of('three_control_then_free_start_date'),399,"...")}" %> 天</td>
-    <td class='th_row'>積德忘憂</td><td align="center"><%= count_of_linshijie_histories %> 次</td>  <!--
-    <td class='th_row'>在京退休</td><td align="center"><%= link_to "#{retire_date} (#{my_age_2}歲)", {:action => :cal_retire_plan, :pname => 'params_of_retire_in_beijing'}, {:title => "#{retire_date}，還剩#{retire_date_diff}天(#{sprintf("%0.1f", retire_date_diff/365.0)}年)", :target => "_blank"} %></td>
     //-->
-    <td class='th_row'>自住退休</td><td align="center"><%= link_to "#{@retire_date} (#{my_age_1}歲)", {:action => :cal_retire_plan, :pname => 'params_of_retire'}, {:name => "view", :title => "#{@retire_date}, 還剩#{@retire_date_diff}天(#{sprintf("%0.1f", @retire_date_diff/365.0)}年), 相当于从#{(Date.today-@retire_date_diff).to_s(:db)}到现在", :target => "_blank"} %></td>    
+    <td class='th_row'>聖別遺愛</td><td align="center"><%= day_diff("2017-03-05".to_date,Date.today) %> 天</td>
+    <td class='th_row'>積德忘憂</td><td align="center"><%= count_of_linshijie_histories %> 次</td>
+    <td class='th_row'>自住退休</td><td align="center"><%= link_to "#{@retire_date} (#{my_age_1}歲)", {:action => :cal_retire_plan, :pname => 'params_of_retire'}, {:name => "view", :title => "#{@retire_date}, 還剩#{@retire_date_diff}天(#{sprintf("%0.1f", @retire_date_diff/365.0)}年), 相当于从#{(Date.today-@retire_date_diff).to_s(:db)}到现在", :target => "_blank"} %></td>
+    <td class='th_row'>退休還剩</td><td align="center"><%= link_to @retire_date_diff, '#', :title => content_of("retire_date") %> 天 (<%= sprintf("%0.1f",@retire_date_diff/365.0) %>年)</td>   
     <td class='th_row'>流動資產</td><td align="center"><%= link_to_current_assets %> 元 <%= show_current_assets_icon(this_month_current_assets_goal,@total_current_assets,"\n#{get_next_year_current_assets_goal}") %></td>
 
     <!--td class='th_row'>最快退休</td><td align="center"><%#= link_to "#{fast_retire_date} (#{retire_date_fast_birthday_diff}歲)", {:action => :cal_retire_plan, :pname => 'params_of_fastest_retire_in_beijing'}, {:title => "#{content_of("params_of_fastest_retire_in_beijing")}", :target => "_blank"} %></td>

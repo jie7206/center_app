@@ -6,42 +6,28 @@
   <p>性別：<%= select("member", "sex_id", sex_arr ) %></p>
   <p>生日：<%= f.date_select :birthday, :start_year => 1920, :end_year => Time.now.year, :use_month_numbers => true %>
                     <%= f.check_box :birthday_still_unknow %> 還不知道生日</p>
-  <p>入會日：<%= f.text_field :spiritual_birthday , :size =>13 %><br/><span style="color:#a00;font-size:0.8em;margin-left:4.6em">格式：yyyy-mm-dd&nbsp;&nbsp;條件：聽完原理 + 接受真父母 + 開始禮拜</span></p>                    
+  <p>入會日：<%= f.text_field :spiritual_birthday , :size =>13 %><br/><span style="color:#a00;font-size:0.8em;margin-left:4.6em">格式：yyyy-mm-dd&nbsp;&nbsp;</span></p>                    
   <p>父母親：<%= select("member", "father_id", Member.all(:order => "name").collect {|m| [ m.name, m.id ] }, { :include_blank => true }) %></p>
   <p>靈父母：<%= select("member", "introducer_id", Member.all(:order => "name").collect {|m| [ m.name, m.id ] }, { :include_blank => true }) %></p>
   <p>分類：<%= f.select :classification, classification_arr %></p>
   <p>類別：<%= f.select :career, career_arr %></p>
   <p>地區：<%= f.select :area_id, area_arr %></p>  
-  <p>手機：<%= f.text_field :mobile %></p>
   <p>郵箱：<%= f.text_field :email %></p>  
   <p>學校：<%= f.text_field :school %></p>
   <p>學歷：<%= f.text_field :educational_background %></p>
   <p>職業：<%= f.text_field :occupation %></p>
   <p>興趣：<%= f.text_field :interest %></p>
-  <p>祝福對數：<%= select("member", "blessing_number", blessing_couple_arr.collect {|b| [ b[0], b[1] ] }, { :include_blank => true }) %></p>
-  <p>主體對象：<%= select("member", "spouse_id", Member.all(:order => "name").collect {|m| [ m.name, m.id ] }, { :include_blank => true }) %>
-    <% if @member.spouse_id %>
-      <%= link_to "[編輯]", :action => :edit, :id => @member.spouse_id %>
-    <% end %>
-  </p>
   <p>圖檔名稱：<%= select("member", "picture", Dir.new(RAILS_ROOT+"/public/images/picture").collect {|file| [ file.to_s, file.to_s ] }, { :include_blank => true }) %></p>
   <p>
-  	<%= f.check_box :is_on_table %> 將此人设为<%=@pray_list_title%> <%= link_to "→"+@pray_list_title+"名单列表", {:action => :pray_list}, {:style => "font-size:0.2pt", :target => "_blank"} %><br/>
-    <% if session[:role] == 'admin' %>
+      <%= f.check_box :is_teacher %> 將此人列入講師組(活動老師)<br/>
+      <%= f.check_box :is_cleaner %> 將此人列入服侍組(整理場地)<br/>
       <%= f.check_box :is_core_leader %> 將此人设为<%=@local_leader_title%><br/>
-    	<%= f.check_box :is_staff %> 將此人设为<%=@local_staff_title%><br/>
-      <%= f.check_box :is_teacher %> 將此人设为活動老師<br/>  	
-      <%= f.check_box :admin_only %> 將此人设为只有管理員能看到<br/>
       <%= f.check_box :blessedable %> 將此人设为可预备接受祝福者<br/>
       <%= f.check_box :is_core_family %> 將此人设为核心家庭代表<br/>
       <%= f.check_box :is_college %> 將此人设为大学生<br/>
       <%= f.check_box :is_2g %> 此人为二世祝福会员<br/>
-    <% end %>
+      <%= f.check_box :is_on_table %> 將此人设为<%=@pray_list_title%> <%= link_to "→"+@pray_list_title+"名单列表", {:action => :pray_list}, {:style => "font-size:0.2pt", :target => "_blank"} %><br/>
   </p>
   <p>備註事項：<br/><%= f.text_area :memo, :size => "50x5" %></p>
-  <p>禱告內容/帶領計畫：<br/><%= f.text_area :pray_note, :size => "50x5" %></p>
-  <% if session[:role] == 'admin' %>
-    <p><%= f.submit submit_title %>&nbsp;&nbsp;<%= button_to_function '返回前頁', "history.back();" %></p>
-  <% end %>
 <% end %>
 

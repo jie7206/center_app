@@ -67,8 +67,8 @@ def type_name( code )
         when 'registered' : ctype = '登記'
         when 'inactive' : ctype = '休眠'
         when 'new' : ctype = '新增'
-        when 'supporter' : ctype = '慕道'
-        when 'sunday' : ctype = '禮拜'
+        when 'supporter' : ctype = '新增'
+        when 'sunday' : ctype = '活动'
     end
     case chars[2]     
         when 'student' : age = '學生'
@@ -127,7 +127,7 @@ end
                 "即SUPPORTERS，還不是會員，但在學習原理中或支持我們運動的和平大使以及通過宗族彌賽亞祝福的參加夫婦"
             ]
             desr_index = 0
-            title_arr = %W(慕_道_學_員) %>
+            title_arr = %W(新_增_學_員) %>
             <%= render :partial => 'age_rows', :locals => { :desr_arr => desr_arr, :title_arr => title_arr } %>        
         <%
             # 会员分类标准说明
@@ -146,10 +146,10 @@ end
         <%
             # 活動成果计算方式
             desr_arr = [ 
-                "禮拜出席人數的計算方式為每月最高兩次人數的平均"
+                "活动出席人數的計算方式為每月最高兩次人數的平均"
             ]
             desr_index = 0
-            title_arr = %W(禮_拜) %>
+            title_arr = %W(活_动) %>
             <%= render :partial => 'age_rows', :locals => { :desr_arr => desr_arr, :title_arr => title_arr } %>
     </table>
 

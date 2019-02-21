@@ -3,7 +3,7 @@
 <% # 为了方便批量输入用(Word, Excel) %>
 <% prepare_member_report_input_data %>
 
-<table border="1" cellpadding="5" cellspacing="2" style="border-collapse: collapse;font-size:0.2em" bordercolor="#444444" align="center" width="900">
+<table border="1" cellpadding="5" cellspacing="2" style="border-collapse: collapse;font-size:0.2em" bordercolor="#444444" align="center" width="1000">
 <style>
 .age {
   width: 40px;
@@ -69,7 +69,7 @@
 <% #主体资料 %>
           <tr>
             <td rowspan="<%=3+children.size%>" align="center" valign="top" bgcolor="#F7DCB4"><a name="F<%=n%>" href="#F<%=n+1%>"><%= n %></a></td>
-            <td colspan="<%=colspan%>" align="center" bgcolor="#F7DCE8"><%= blessing_name %>&nbsp;【 <%= member.name %> & <%= spouse.name %> 家庭 】&nbsp;<%= member.ename %> <%= "&" if !member.ename.empty? and !spouse.ename.empty? %> <%= spouse.ename %>
+            <td colspan="<%=colspan%>" align="center" bgcolor="#F7DCE8"><%= blessing_name %>&nbsp;【 <%= member.name %> & <%= spouse.name %> 家庭 】&nbsp;<br/><!--<%= member.ename %> <%= "&" if !member.ename.empty? and !spouse.ename.empty? %> <%= spouse.ename %>-->
               <% if photo_url %>
                 <%= image_tag( photo_url, :width => "640", :title => picture_title, :style => "background-color:#fff;padding:8px;margin-top:5px;border:1px #ccc solid") %>
               <% end %>

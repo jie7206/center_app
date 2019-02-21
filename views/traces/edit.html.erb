@@ -2,7 +2,7 @@
 <% form_for(@trace) do |f| %>
 	  <%= f.error_messages %>
 	  <p>態度評等：<%= f.select :star_level, star_arr %></p>
-	  <p>活动类别：<%= select("trace", "class_type", class_type_arr.collect {|c| [ c[0], c[1] ] }, { :include_blank => false }) %> <%= f.check_box :is_public_class %> 可视为公的活动 （包含礼拜、听课、聚会）</p>
+	  <p>活动类别：<%= select("trace", "class_type", class_type_arr.collect {|c| [ c[0], c[1] ] }, { :include_blank => false }) %></p>
 	  <p>活动日期：<%= f.text_field :last_class_date, :size => "9", :value => @trace.last_class_date.strftime("%Y-%m-%d") %></p>
 	  <p>活动地区：<%= select("trace", "aid", area_arr.collect {|a| [ a[0], a[1] ] }, { :include_blank => false }) %></p>
 	  <p>活动老師：<%= select("trace", "last_class_teacher", Member.find_all_by_is_teacher(true).collect {|m| [ m.name, m.name ] }, { :include_blank => false }) %></p>

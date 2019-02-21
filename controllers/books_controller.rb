@@ -6,6 +6,8 @@ class BooksController < ApplicationController
 
   def new
     @book = Book.new
+    @book.is_default = true
+    @book.bg_filename = 'ucbg_w.jpg'
 
     respond_to do |format|
       format.html # new.html.erb
@@ -22,7 +24,7 @@ class BooksController < ApplicationController
 
     if @book.save
       flash[:notice] = '书籍资料已成功设定！'
-      redirect_to :action => 'index'
+      redirect_to :controller => 'main', :action => 'show_golden_verse', :rand_collect => true
     else
       render :action => "new"
     end    

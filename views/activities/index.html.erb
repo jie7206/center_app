@@ -2,10 +2,10 @@
 <%#= leaders_and_peroid_and_types_bar %>
 
 <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse" bordercolor="#444444" align="center" width="1270">
-<% image_width = 150 %>
+<% image_width = 400 %>
 <% @activities.each do |activity| %>
 <% #如果人数大于多少才显示活動紀錄表 %>
-<% if activity.people_count > value_of("min_activity_people_count").to_i %>
+<% if activity.is_achievement and activity.people_count > value_of("min_activity_people_count").to_i %>
         <tr>
           <td align="left">
             <div style="text-align:left;font-size:18px;border:0px solid #f00;width:50%;margin-left:483px">
@@ -28,14 +28,14 @@
         <% 
           activities_images_in_folder = []
           (activity.begin_date..activity.end_date).each do |this_date|
-            activities_images_in_folder << get_file_names("public/images/#{@activities_photo_path}", "_#{add_zero(this_date.month,2)}#{add_zero(this_date.day,2)}_")
+            activities_images_in_folder << get_file_names("public/images/#{@activities_photo_path}", "#{this_date.year}_#{add_zero(this_date.month,2)}#{add_zero(this_date.day,2)}_")
           end
           activities_images_in_folder.flatten!
         %>
         <% if activities_images_in_folder.size > 0 %>
         <tr>
           <td valign="top">
-              <%= show_folder_images_in_table( activities_images_in_folder, @activities_photo_path, 300 ) %>
+              <%= show_folder_images_in_table( activities_images_in_folder, @activities_photo_path, image_width ) %>
           </td>
         </tr>
         <% end %>

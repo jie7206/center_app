@@ -37,9 +37,9 @@ class Donation < ActiveRecord::Base
       
   def self.total_amount( member_id, month_num = nil )
     if month_num
-      result = find_by_sql("SELECT SUM(amount) AS total_amount FROM donations WHERE member_id=#{member_id} and created_at >= '#{(Time.now-month_num.month).to_s(:db)}'")[0][:total_amount]
+      result = find_by_sql("SELECT SUM(amount) AS total_amount FROM donations WHERE catalog_id=1 and member_id=#{member_id} and created_at >= '#{(Time.now-month_num.month).to_s(:db)}'")[0][:total_amount]
     else
-      result = find_by_sql("SELECT SUM(amount) AS total_amount FROM donations WHERE member_id=#{member_id}")[0][:total_amount]
+      result = find_by_sql("SELECT SUM(amount) AS total_amount FROM donations WHERE catalog_id=1 and member_id=#{member_id}")[0][:total_amount]
     end  
     if result
       return result.to_i
@@ -49,7 +49,7 @@ class Donation < ActiveRecord::Base
   end
 
   def self.month_ave_in_this_year( member_id )
-    result = find_by_sql("SELECT SUM(amount) AS total_amount FROM donations WHERE member_id=#{member_id} AND accounting_date >= '2014-01-01'")[0][:total_amount]
+    result = find_by_sql("SELECT SUM(amount) AS total_amount FROM donations WHERE catalog_id=1 and member_id=#{member_id} AND accounting_date >= '2014-01-01'")[0][:total_amount]
     if result
       return (result.to_f/11).to_i
     else
@@ -58,10 +58,10 @@ class Donation < ActiveRecord::Base
   end
 
   def self.month_ave( member_id )
-    result = find_by_sql("SELECT SUM(amount) AS total_amount FROM donations WHERE member_id=#{member_id}")[0][:total_amount]
+    result = find_by_sql("SELECT SUM(amount) AS total_amount FROM donations WHERE catalog_id=1 and member_id=#{member_id}")[0][:total_amount]
     if result and result.to_i > 0
       # 计算到底有几个月分
-      month_num = month_diff( Donation.first(:order => "accounting_date",:conditions => ["member_id=?",member_id] ).accounting_date, Date.today ).to_i
+      month_num = month_diff( Donation.first(:order => "accounting_date",:conditions => ["catalog_id=1 and member_id=?",member_id] ).accounting_date, Date.today ).to_i
       return (result.to_f/month_num).to_i
     else
       return 0

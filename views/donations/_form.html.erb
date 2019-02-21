@@ -8,7 +8,7 @@
     所屬科目：<%= f.select :catalog_id, donation_catalog_arr %>
   </p>
   <p>
-    會計日期：<%= f.date_select :accounting_date, :use_month_numbers => true %>
+    會計日期：<%= f.text_field :accounting_date, :style => "width:168px" %>
   </p>
   <p>
     奉獻金額：<%= f.text_field :amount, :style => "width:168px", :onclick => "this.select();" %>
@@ -17,7 +17,7 @@
     奉獻標題：<%= f.text_field :title, :style => "width:168px" %>
   </p>
   <p>
-    備註說明：<%= f.text_field :note, :style => "width:168px", :onclick => "this.select();" %>
+    備註說明：<%= f.text_field :note, :style => "width:168px" %>
   </p>
 
   <% if session[:role] == 'admin' %>

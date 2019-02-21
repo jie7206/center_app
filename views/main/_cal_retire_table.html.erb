@@ -16,7 +16,8 @@
     # 解約所有太平的保險
     @add_cancel_all_TaiPing = params[:o7]
     # 顯示每天的計算結果
-    @add_show_everyday_result = params[:o8].nil? ? false : true
+    params[:o8] = true if params[:o8] == '1'
+    @add_show_everyday_result = params[:o8] == true ? true : false
     # 存款總值為負數則停止
     @add_stop_cal_if_minus = params[:o20]
     # 新光金如意保單貸款
@@ -41,6 +42,8 @@
     @add_TW_air_ticket_fee = params[:o16]
     # 每年特別節日奉獻金
     @add_UC_donation = params[:o17]
+    # 优先偿还太平保單貸款
+    @repay_TaiPing_first = params[:o22]
     # 是否显示页面标题
     @show_head_title = params[:show_retire_table_title]
     # 仕傑的工商銀行存款 + 手上的人民币现金
@@ -65,7 +68,9 @@
     # 工資收入的每月剩餘
     @value_of_work1_income = params[:t7].to_i
     # 工資收入的每月剩餘(每月几號入帳)
-    @day_of_work1_income = params[:t37].to_i  
+    @day_of_work1_income = params[:t37].to_i
+    # 退休时的资产目标
+    @net_goal_value = params[:t49].to_i 
     # 工資收入的每月剩餘(何日最後一天擔任公職)
     @end_date_of_work1 = "#{params[:t8_y]}-#{params[:t8_m]}-#{params[:t8_d]}".to_date
     # 自何日起开始接案
@@ -91,7 +96,7 @@
     # 偿还太平人壽保單貸款直到本金为多少
     @min_remain_loan_of_TaiPing = params[:t18].to_i
     # 在还没有还清新光贷款以前，每次交多少人民幣以偿还太平贷款
-    @value_of_repay_TaiPing_before_clean_JinRuYi_loan = params[:t46].to_i
+    # @value_of_repay_TaiPing_before_clean_JinRuYi_loan = params[:t46].to_i
     # 離職後住北京每月的生活費
     @value_of_living_expenses_after_quit_work1 = params[:t19].to_i
     # 離職後住北京直到何日开始住紅樹灣
@@ -156,6 +161,8 @@
 
     # 工商银行存款的初始值(2017.11.23改为内地存款)
     @icbc_deposit_total = sum_of_mcy_flow_assets.to_i
+    # 计算定存目标的初始值
+    @must_save_total = AssetItem.find(6).amount.to_i
 
     # 台幣存款的初始值(以NTD计算的流动资产)( 彰化銀行泰山分行存款[主要-因能还贷] + 中國信託仁愛分行存款[次要-也能还贷] + 台新银行天母分行存款[目前太少，先不列入] )
     @tw_deposit_total = sum_of_ntd_flow_assets.to_i #AssetItem.find(83).amount.to_i + AssetItem.find(17).amount.to_i #+ AssetItem.find(14).amount.to_i
@@ -193,19 +200,19 @@
 
     # 內地保單資料
     # 太平一諾千金終身壽險保單資料
-    @data_of_TaiPing_annuity = {:expire_date => "2029-12-09", :fee => 9023, :title => "太平一諾千金終身壽險", :terminate => {2016=>39800,2017=>56800,2018=>66000,2019=>75000,2020=>84000,2021=>94000,2022=>104000,2023=>119400,2024=>130000,2025=>140000,2026=>150000,2027=>160000,2028=>188400}}
+    @data_of_TaiPing_annuity = {:expire_date => "2029-12-09", :fee => 9023, :title => "太平一諾千金終身壽險", :terminate => {2016=>39800,2017=>56800,2018=>66000,2019=>75000,2020=>84000,2021=>94000,2022=>104000,2023=>119400,2024=>130000,2025=>140000,2026=>150000,2027=>160000,2028=>188400,2029=>200000}}
     @expire_date_of_TaiPing_annuity = @data_of_TaiPing_annuity[:expire_date].to_date
     # 孟麗的大病險保單資料
     @data_of_TaiPing_healths = [
-        {:expire_date => "2039-10-15", :fee => 1936,:title => "太平福禄双至终身寿险", :terminate => {2016=>4400,2017=>5360,2018=>6320,2019=>7360,2020=>8360,2021=>10000,2022=>11600,2023=>12600,2024=>13600,2025=>15000,2026=>16000,2027=>17000,2028=>20000,2029=>21600,2030=>23000,2031=>25000,2032=>26000,2033=>27000,2034=>30160,2035=>33000,2036=>36000,2037=>37000,2038=>38000}},
-        {:expire_date => "2039-10-15", :fee => 672,:title => "太平附加真爱提前给付重大疾病保险", :terminate => {2016=>1440,2017=>1680,2018=>2000,2019=>2240,2020=>2600,2021=>2900,2022=>3200,2023=>3400,2024=>3600,2025=>3900,2026=>4200,2027=>4500,2028=>4800,2029=>4960,2030=>5160,2031=>5360,2032=>5560,2033=>5760,2034=>6080,2035=>6280,2036=>6480,2037=>6680,2038=>7000}}]
+        {:expire_date => "2039-10-15", :fee => 1936,:title => "太平福禄双至终身寿险", :terminate => {2016=>4400,2017=>5360,2018=>6320,2019=>7360,2020=>8360,2021=>10000,2022=>11600,2023=>12600,2024=>13600,2025=>15000,2026=>16000,2027=>17000,2028=>20000,2029=>21600,2030=>23000,2031=>25000,2032=>26000,2033=>27000,2034=>30160,2035=>33000,2036=>36000,2037=>37000,2038=>38000,2039=>40000}},
+        {:expire_date => "2039-10-15", :fee => 672,:title => "太平附加真爱提前给付重大疾病保险", :terminate => {2016=>1440,2017=>1680,2018=>2000,2019=>2240,2020=>2600,2021=>2900,2022=>3200,2023=>3400,2024=>3600,2025=>3900,2026=>4200,2027=>4500,2028=>4800,2029=>4960,2030=>5160,2031=>5360,2032=>5560,2033=>5760,2034=>6080,2035=>6280,2036=>6480,2037=>6680,2038=>7000,2039=>7600}}]
     @expire_date_of_TaiPing_healths = @data_of_TaiPing_healths[0][:expire_date].to_date
     # 文心的教育險保單資料
     @data_of_TaiPing_educations = [    
-        {:expire_date => "2024-12-09", :fee => 2123,:title => "太平狀元附加大學教育年金保險", :terminate => {2016=>11880,2017=>14150,2018=>16550,2019=>19080,2020=>21100,2021=>23200,2022=>25300,2023=>27400}},
-        {:expire_date => "2024-12-09", :fee => 512,:title => "太平陽光天使少兒兩全保險", :terminate => {2016=>2320,2017=>2770,2018=>3240,2019=>3730,2020=>4230,2021=>4730,2022=>5230,2023=>5730}},
-        {:expire_date => "2024-12-09", :fee => 67,:title => "太平附加陽光天使少兒重大疾病保險", :terminate => {2016=>30,2017=>50,2018=>70,2019=>100,2020=>150,2021=>200,2022=>250,2023=>300}},
-        {:expire_date => "2024-12-09", :fee => 68.6,:title => "太平真愛附加豁免保險費定期壽險", :terminate => {2016=>0,2017=>0,2018=>0,2019=>0,2020=>0,2021=>0,2022=>0,2023=>0}}]
+        {:expire_date => "2024-12-09", :fee => 2123,:title => "太平狀元附加大學教育年金保險", :terminate => {2016=>11880,2017=>14150,2018=>16550,2019=>19080,2020=>21100,2021=>23200,2022=>25300,2023=>27400,2024=>34020}},
+        {:expire_date => "2024-12-09", :fee => 512,:title => "太平陽光天使少兒兩全保險", :terminate => {2016=>2320,2017=>2770,2018=>3240,2019=>3730,2020=>4230,2021=>4730,2022=>5230,2023=>5730,2023=>6660}},
+        {:expire_date => "2024-12-09", :fee => 67,:title => "太平附加陽光天使少兒重大疾病保險", :terminate => {2016=>30,2017=>50,2018=>70,2019=>100,2020=>150,2021=>200,2022=>250,2023=>300,2024=>350}},
+        {:expire_date => "2024-12-09", :fee => 68.6,:title => "太平真愛附加豁免保險費定期壽險", :terminate => {2016=>0,2017=>0,2018=>0,2019=>0,2020=>0,2021=>0,2022=>0,2023=>0,2024=>0}}]
     @expire_date_of_TaiPing_educations = @data_of_TaiPing_educations[0][:expire_date].to_date
 
     # 在台保費
@@ -247,7 +254,7 @@
 
     # 打印到控制台进行观察(ptc = puts to console的缩写)
     def ptc
-       puts "#{@this_date.to_s(:db)} -> NET: #{@net_asset_value_NTD}"
+       puts "#{@this_date.year-1974}> #{@this_date.to_s(:db)} -> NET: #{@net_asset_value_NTD}"
     end
 
     # 設定是否顯示當天資料(oh = output to html的缩写)
@@ -272,6 +279,8 @@
     def execute_fix_value_on_day
         if @date_of_fix_value and @this_date == @date_of_fix_value
             @icbc_deposit_total += @fix_value_of_icbc_deposit_1 
+            # 更新存款总值与资产净值
+            update_sum_of_deposit_NTD
             oh "执行修正值使内地存款增减 #{@fix_value_of_icbc_deposit_1} RMB"
             @date_of_fix_value = nil # 只许执行一次
         end
@@ -295,21 +304,23 @@
             <tr style=\"background-color:#f7dcb4;text-align:center\">
                         <th><a href=\"#\" title=\"\">日數</a></th>
                         <th><a href=\"#\" title=\"\">日期</a></th>
-                        <th><a href=\"#\" title=\"新台幣\">如意利息</a></th>
+                        <!--th><a href=\"#\" title=\"新台幣\">如意利息</a></th//-->
                         <th><a href=\"#\" title=\"新台幣\">如意本金</a></th>  
-                        <th><a href=\"#\" title=\"新台幣\">太平利息</a></th>
+                        <!--th><a href=\"#\" title=\"新台幣\">太平利息</a></th//-->
                         <th><a href=\"#\" title=\"人民幣\">太平本金</a></th>   
                         <th><a href=\"#\" title=\"人民幣\">內地保費</a></th>
                         <th><a href=\"#\" title=\"新台幣\">在台保費</a></th>
                         <th><a href=\"#\" title=\"人民幣\">物業供暖</a></th>
                         <th><a href=\"#\" title=\"新台幣\">如意還本</a></th>
                         <th><a href=\"#\" title=\"人民幣\">出租收入</a></th>
-                        <th><a href=\"#\" title=\"人民幣\">工資收入</a></th>
                         <th><a href=\"#\" title=\"人民幣\">接案收入</a></th>
+                        <th><a href=\"#\" title=\"人民幣\">工資收入</a></th>
+                        <th><a href=\"#\" title=\"人民幣\">预计定存</a></th>
+                        <th><a href=\"#\" title=\"人民幣\">定存目标</a></th>
                         <th><a href=\"#\" title=\"人民幣\">内地存款</a></th>
                         <th><a href=\"#\" title=\"新台幣\">台幣存款</a></th>
-                        <th><a href=\"#\" title=\"新台幣\">資產淨值</a></th>
                         <th><a href=\"#\" title=\"到#{@end_year_of_JinRuYi_money_back}年每月可用人民幣\">退休解約</a></th>
+                        <th><a href=\"#\" title=\"新台幣\">資產淨值</a></th>                        
             </tr>"
     end
 
@@ -321,23 +332,25 @@
     # 显示表格中的每笔资料
     def show_table_record
         "<tr align=\"right\" bgcolor=\"#FFFFFF\" onMouseOver=\"this.style.background='#EFEF88';\" onMouseOut=\"this.style.background='#FFFFFF';\">
-            <td title=\"#{@this_date.year-1974} 岁\">#{@_this_date_and_plan_end_date_diff_num}</td>
+            <td title=\"#{@this_date.year-1974} 歲\">#{@_this_date_and_plan_end_date_diff_num}</td>
             <td title=\"#{@_this_date_note}\">#{@this_date}#{show_a_name}</td>
-            <td title=\"#{@begin_date_of_JinRuYi_loan_interest.to_date} #{@_this_date_JinRuYi_loan_interest.ntd_to_rmb} RMB\">#{@_this_date_JinRuYi_loan_interest}</td>
-            <td>#{@value_of_JinRuYi_loan}</td>
-            <td title=\"#{@begin_date_of_TaiPing_loan_interest.to_date} #{@_this_date_TaiPing_loan_interest.rmb_to_ntd} NTD\">#{@_this_date_TaiPing_loan_interest}</td>
+            <!--td title=\"#{@begin_date_of_JinRuYi_loan_interest.to_date} #{@_this_date_JinRuYi_loan_interest.ntd_to_rmb} RMB\">#{@_this_date_JinRuYi_loan_interest}</td//-->
+            <td title=\"#{@begin_date_of_JinRuYi_loan_interest.to_date} 起算，利息共 #{@_this_date_JinRuYi_loan_interest} NTD\">#{@value_of_JinRuYi_loan}</td>
+            <!--td title=\"#{@begin_date_of_TaiPing_loan_interest.to_date} #{@_this_date_TaiPing_loan_interest.rmb_to_ntd} NTD\">#{@_this_date_TaiPing_loan_interest}</td//-->
             <td>#{@value_of_TaiPing_loan}</td>
             <td>#{@_this_date_total_china_insurance_fee}</td>
             <td>#{@_this_date_total_tw_insurance_fee}</td>
             <td>#{@_this_date_HongShuWan_management_or_heating_fee}</td>
             <td>#{@_this_date_JinRuYi_money_back_amount}</td>
             <td>#{@_this_date_HongShuWan_income_amount}</td>
-            <td>#{@_this_date_work1_income_amount}</td>
             <td>#{@_this_date_work2_income_amount}</td>
+            <td>#{@_this_date_work1_income_amount}</td>
+            <td>#{@_this_date_must_save_amount}</td>
+            <td>#{@must_save_total}</td>
             <td>#{@icbc_deposit_total}</td>
             <td>#{@tw_deposit_total}</td>
+            <td title=\"解約得 #{@total_taiping_money_back} RMB\">#{@_this_retire_month_annuity}</td>
             <td title=\"存款總值：#{@sum_of_deposit_NTD} NTD\n資產淨值：#{@net_asset_value_NTD.ntd_to_rmb} RMB\">#{@net_asset_value_NTD}</td>
-            <td title=\"RMB/月\">#{@_this_retire_month_annuity}</td>
         </tr>"
     end
 
@@ -345,7 +358,7 @@
     def update_sum_of_deposit_NTD
         # 如果工行或台币有一方为负数，则自动汇款补充
         check_and_update_minus_deposit
-        # 存款总值
+        #存款总值
         @sum_of_deposit_NTD = @tw_deposit_total + @icbc_deposit_total.rmb_to_ntd
         # 资产净值 = 存款总值 + 总负债
         @sum_of_debt_NTD = cal_sum_of_debt_NTD
@@ -463,7 +476,13 @@
             update_sum_of_deposit_NTD
             # 显示在当天的表格里
             @_this_date_work1_income_amount = @value_of_work1_income
-            oh "工資剩餘存入 #{@value_of_work1_income} RMB"
+            oh "工資剩餘存入 #{@_this_date_work1_income_amount} RMB"
+            # 显示工资中的定存
+            @_this_date_must_save_amount = @value_of_must_save
+            @must_save_total += @_this_date_must_save_amount
+            if @_this_date_must_save_amount > 0
+                oh "将工資中 #{@_this_date_must_save_amount} RMB 存入定存"
+            end
         end
     end
 
@@ -491,17 +510,17 @@
        # 太平解约金
        result = 0
        # 解约太平一諾千金保險
-       if includes[:annuity]
+       if includes[:annuity] and this_date < @expire_date_of_TaiPing_annuity
             result += @data_of_TaiPing_annuity[:terminate][this_date.year.to_i] if @data_of_TaiPing_annuity[:terminate][this_date.year.to_i]
        end
        # 解约孟麗的大病險
-       if includes[:health]
+       if includes[:health] and this_date < @expire_date_of_TaiPing_healths
             @data_of_TaiPing_healths.each do |h|
                 result += h[:terminate][this_date.year.to_i] if h[:terminate][this_date.year.to_i]
             end
        end
        # 解约文心的教育險
-       if includes[:education]
+       if includes[:education] and this_date < @expire_date_of_TaiPing_educations
             @data_of_TaiPing_educations.each do |e|
                 result += e[:terminate][this_date.year.to_i] if e[:terminate][this_date.year.to_i]
             end
@@ -523,7 +542,7 @@
     #【預期收入】解約所有太平的保險
     def deal_cancel_all_TaiPing
         # 查看今天是否为太平保險的解約日，如果是，則把所有太平的保单解约存入我的工商銀行
-        if @this_date.year <= 2028 and @this_date == @date_of_cancel_all_TaiPing
+        if @this_date == @date_of_cancel_all_TaiPing
             # 解约所有太平的保单
             @income_from_terminate_TaiPing_insurances = terminate_TaiPing_insurances(@date_of_cancel_all_TaiPing)
             # 清空太平年金到期后月領资料
@@ -651,7 +670,9 @@
     #【既有負債】太平人壽的保單貸款
     def deal_repay_TaiPing_loan
         # 1) 还清金如意贷款本金(或最小本金)以前，以工行存款在每年的06-28和12-28两天偿还所输入的金额
-        if @value_of_TaiPing_loan > 0 and @value_of_JinRuYi_loan > @min_remain_loan_of_JinRuYi and ( (@this_date.month == 6 and @this_date.day == 28) or (@this_date.month == 12 and @this_date.day == 28) )
+        # if @value_of_TaiPing_loan > 0 and @value_of_JinRuYi_loan > @min_remain_loan_of_JinRuYi and ( (@this_date.month == 6 and @this_date.day == 28) or (@this_date.month == 12 and @this_date.day == 28) )
+        # 1) 每月28日有多少工行存款就还多少
+        if @value_of_TaiPing_loan > 0 and @this_date.day == 28
             # 1-1) 偿还太平贷款利息
                 # 以工行存款缴交太平贷款利息
                 @icbc_deposit_total -= @_this_date_TaiPing_loan_interest
@@ -662,9 +683,12 @@
                 oh "以工行償還太平貸款利息 #{@_this_date_TaiPing_loan_interest} RMB"
             # 1-2) 偿还太平贷款本金
                 # 要偿还的本金值 = 按照输入的金额(t46) - 偿还的利息 - 最低保留本金(t18)
-                remain_money_for_repay_TaiPing_loan = @value_of_repay_TaiPing_before_clean_JinRuYi_loan - @_this_date_TaiPing_loan_interest - @min_remain_loan_of_TaiPing
+                # remain_money_for_repay_TaiPing_loan = @value_of_repay_TaiPing_before_clean_JinRuYi_loan - @_this_date_TaiPing_loan_interest - @min_remain_loan_of_TaiPing
+                # 要偿还的本金值 = 工行存款(能还多少还多少) - 偿还的利息 - 最低保留本金(t18)
+                remain_money_for_repay_TaiPing_loan = @icbc_deposit_total - @_this_date_TaiPing_loan_interest - @min_remain_loan_of_TaiPing
                 # 1-2-1) 当剩余能还本金的钱 <= 太平贷款本金
-                if remain_money_for_repay_TaiPing_loan > 0 and @sum_of_deposit_NTD > remain_money_for_repay_TaiPing_loan.rmb_to_ntd + @value_of_exlost_and_bank_fee.rmb_to_ntd and remain_money_for_repay_TaiPing_loan <= @value_of_TaiPing_loan - @min_remain_loan_of_TaiPing
+                # if remain_money_for_repay_TaiPing_loan > 0 and @sum_of_deposit_NTD > remain_money_for_repay_TaiPing_loan.rmb_to_ntd + @value_of_exlost_and_bank_fee.rmb_to_ntd and remain_money_for_repay_TaiPing_loan <= @value_of_TaiPing_loan - @min_remain_loan_of_TaiPing
+                if remain_money_for_repay_TaiPing_loan > 0 and remain_money_for_repay_TaiPing_loan <= @value_of_TaiPing_loan - @min_remain_loan_of_TaiPing
                     # 以工行存款偿还太平贷款本金
                     @icbc_deposit_total -= remain_money_for_repay_TaiPing_loan
                     # 更新存款總值
@@ -860,9 +884,14 @@
         # 未来能领的金如意年金总额
         jinruyi_annuity_total = @value_of_JinRuYi_money_back * jinruyi_annuity_times
         # 解约金领取总额
-        total_taiping_money_back = terminate_TaiPing_insurances(@this_date)
-        # 月生活费算法：(今日資產淨值+太平解约金+未来能领的金如意年金)/剩多少个月
-        @_this_retire_month_annuity = ((@net_asset_value_NTD+total_taiping_money_back.rmb_to_ntd+jinruyi_annuity_total)/remain_life_months).ntd_to_rmb
+        @total_taiping_money_back = terminate_TaiPing_insurances(@this_date)
+        # 未来能领的太平年金与社保年金
+        taiping_and_shebao_annuity_total = 0
+        if @this_date > @begin_date_of_TaiPing_money_back
+            taiping_and_shebao_annuity_total = @value_of_month_annuity_after_TaiPing_money_back*remain_life_months 
+        end
+        # 月生活费算法：(今日資產淨值+太平解约金+未来能领的太平年金与社保年金+未来能领的金如意年金)/剩多少个月
+        @_this_retire_month_annuity = ((@net_asset_value_NTD+@total_taiping_money_back.rmb_to_ntd+taiping_and_shebao_annuity_total.rmb_to_ntd+jinruyi_annuity_total)/remain_life_months).ntd_to_rmb
     end 
 
     # 增加一笔新的金如意贷款
@@ -897,6 +926,38 @@
         end
     end
 
+    # 计算每月需定存多少
+    def ave_must_save_monthly(goal_date=@end_date_of_work1, goal_value=@net_goal_value, jry_imcome=@value_of_JinRuYi_money_back,house_income=@value_of_HongShuWan_income)
+        if goal_value > 0
+            # 计算能领金如意几次
+            jry_count = 0
+            @array_of_JinRuYi_money_back_dates.each do |d|
+                if d.to_date >= @today and d.to_date <= goal_date
+                    jry_count += 1
+                end
+            end
+            # 计算能收房租几次
+            hsw_count = 0
+            @array_of_HongShuWan_income_dates = []
+            params[:t36_y].to_i.upto(params[:t6_y].to_i) do |y|
+                @array_of_HongShuWan_income_dates << "#{y}-#{params[:t36_m]}-#{params[:t36_d]}"
+            end
+            @array_of_HongShuWan_income_dates.each do |d|
+                if d.to_date >= @today and d.to_date <= goal_date
+                    hsw_count += 1
+                end
+            end
+            # 尚需金额
+            must_save_goal = (goal_value - jry_imcome*jry_count - (house_income*hsw_count).rmb_to_ntd).ntd_to_rmb - @net_asset_value_NTD.ntd_to_rmb - @must_save_total
+            # 离目标还有几个月
+            must_save_months = month_diff(@today, goal_date.to_date)
+            # 每个月需存多少
+            return (((must_save_goal/must_save_months).to_i+100)/100).round*100
+        else
+            return 0
+        end
+    end
+
 ################### 全域共用函数[结束] ###############################
 
 ################### 处理页面显示[开始] ###############################
@@ -912,6 +973,9 @@ concat show_table_head
     update_sum_of_deposit_NTD
     # 修正值(意外的支出或收入)何日列入计算
     @date_of_fix_value = "#{params[:t48_y]}-#{params[:t48_m]}-#{params[:t48_d]}".to_date if not date_of_fix_value_is_empty?
+    # 计算每月需定存多少
+    @value_of_must_save = ave_must_save_monthly
+
     #【既有存款】仕傑的工商銀行存款(2017.11.23废除)
     # deal_icbc_deposit_1 if @add_icbc_deposit_1
     #【既有存款】孟麗的工商銀行存款(2017.11.23废除)
@@ -930,6 +994,8 @@ concat show_table_head
     @this_date_already_pay_bank_fee = false
     # 这一日的計算距離表尾(最后一日)的日數
     @_this_date_and_plan_end_date_diff_num = @end_date_of_cal_plan - @this_date + 1
+    # 如果今天解约所有保险，可得的解约金(RMB)
+    @total_taiping_money_back = 0
     # 如果今天退休且解约所有保险，那么每个月能有多少生活费
     @_this_retire_month_annuity = 0
     # 如果修正的日期不为空，则于正确的日期执行修正的数值
@@ -956,6 +1022,8 @@ concat show_table_head
     @_this_date_HongShuWan_income_amount = 0
     # 这一日的工资收入
     @_this_date_work1_income_amount = 0
+    # 这一日的定存金额
+    @_this_date_must_save_amount = 0
     # 这一日的接案收入
     @_this_date_work2_income_amount = 0
 
@@ -977,14 +1045,18 @@ concat show_table_head
     deal_living_expenses_after_quit_work1 if @add_living_expenses_after_quit_work1    
     #【系統選項】顯示每天的計算結果
     deal_show_everyday_result if @add_show_everyday_result
-    #【既有負債】新光金如意保單貸款
-    deal_repay_JinRuYi_loan if @add_repay_JinRuYi_loan
+    #【既有負債】
+    if @repay_TaiPing_first
+        deal_repay_TaiPing_loan if @add_repay_TaiPing_loan #【既有負債】太平人壽的保單貸款
+        deal_repay_JinRuYi_loan if @add_repay_JinRuYi_loan #【既有負債】新光金如意保單貸款
+    else
+        deal_repay_JinRuYi_loan if @add_repay_JinRuYi_loan #【既有負債】新光金如意保單貸款
+        deal_repay_TaiPing_loan if @add_repay_TaiPing_loan #【既有負債】太平人壽的保單貸款        
+    end
     # 偿还新光金如意保單貸款时計算匯差和手續費
     # deal_exlost_and_bank_fee if shound_pay_exlost_and_bank_fee
     # 保留在台保險
     deal_XinGuang_healths if @add_XinGuang_healths
-    #【既有負債】太平人壽的保單貸款
-    deal_repay_TaiPing_loan if @add_repay_TaiPing_loan
     #【預期支出】红树湾每年的管理費
     deal_HongShuWan_fee if @add_HongShuWan_fee
     #【預期支出】繳太平一諾千金保險

@@ -7,19 +7,13 @@ module ApplicationHelper
         separated_mark = "￤"
         separated_mark2 = "｜"
         result << separated_mark2
-        result << link_to( '情緒管理', :controller => 'main', :action => 'show_golden_verse', :rand_collect => true ) << separated_mark
-        result << link_to( '健康管理', '#', :_class => 'gray_text' ) << separated_mark
-        result << link_to( '時間管理', :controller => 'main', :action => 'life_chart' ) << separated_mark
-        result << link_to( '人際管理', :controller => 'members', :aid => '2', :cid => 'local_all', :order_desc => 1, :order_method => 'histories_count_3month' ) << separated_mark
+        result << link_to( '书籍管理', :controller => 'main', :action => 'show_golden_verse', :rand_collect => true ) << separated_mark
+        result << link_to( '人员管理', :controller => 'members', :aid => '2', :cid => 'local_all', :order_desc => 1, :order_method => 'histories_count_3month' ) << separated_mark
         result << link_to( '財務管理', :controller => 'asset_items', :action => 'index' ) << separated_mark2
-        result << link_to( '組織圖表', :controller => 'main', :action => 'show_structure' ) << separated_mark
-        result << link_to( '活动紀錄', :controller => 'histories', :action => 'index_by_month_peroid') << separated_mark
-        result << link_to( '奉獻紀錄', :controller => 'donations', :action => 'index', :data_field => 'catalog_id', :data_value => 1 ) << separated_mark
-        result << link_to( '家庭報表', :controller => 'members', :action => 'family_report' ) << separated_mark
-        result << link_to( '每月報表', :controller => 'member_reports', :action => 'month_report' ) << separated_mark
-        #result << link_to( '模擬系統', :controller => 'sim_sys', :action => 'index' ) << separated_mark
-        result << link_to( '參數設定', :controller => 'params', :action => 'index' ) << separated_mark2        
-        result << book_search_input << member_search_input << life_search_input
+        result << link_to( '活动紀錄', :controller => 'histories', :action => 'index_by_month_peroid', :num_month_ago => 3, :sub_title => '本季') << separated_mark
+        result << link_to( '每月報表', :controller => 'member_reports', :action => 'month_report', :year => 2018) << separated_mark
+        result << link_to( '登出系统', :controller => 'main', :action => 'logout' ) << separated_mark
+        result << book_search_input << member_search_input
         return "<div id='nav_bar' style='text-align: center;'>#{result.join(' ').to_s}</div>"
     end
 
@@ -36,7 +30,7 @@ module ApplicationHelper
     end
 
     def book_search_input
-      build_search_input 'main', 'main/show_golden_verse', '金句搜索'
+      build_search_input 'main', 'main/show_golden_verse', '字句搜索'
     end
      
     def work_turn_start
@@ -87,13 +81,18 @@ module ApplicationHelper
 
       # 显示新人
       result << link_to( '新人', :controller => 'members', :cid => 'local_new_all', :aid => area_id ) + "(#{Member.total_new_count(area_id)})" << separated_mark
-      # 显示單身會員(包含二世)
+      # 显示單身會員(包含孩子)
       result << link_to( '單身', :controller => 'members', :cid => 'local_single_members_all', :aid => area_id ) + "(#{Member.total_single_members_count(area_id)})" << separated_mark
 
-      # 显示 ['祝福會員','0'],['二世子女','5'],['群眾','99']...
+      # 显示 ['祝福會員','0'],['孩子子女','5'],['群眾','99']...
       career_arr[0..2].each do |c|
           result << link_to( c[0][0..5], :controller => 'members', :cid => c[1], :aid => area_id ) + "(#{Member.sum_by_cid_and_aid(c[1].to_s, area_id)})" << separated_mark
       end
+
+      # 显示讲师、司会与侍奉组名单
+      result << link_to( '講師組', :controller => 'members', :cid => 'local_single_members_all', :aid => area_id ) + "(0)" << separated_mark
+      result << link_to( '司會組', :controller => 'members', :cid => 'local_single_members_all', :aid => area_id ) + "(0)" << separated_mark
+      result << link_to( '服侍組', :controller => 'members', :cid => 'local_single_members_all', :aid => area_id ) + "(0)" << separated_mark
 
       # 显示疏離
       # result << link_to( '疏離', :controller => 'members', :cid => 'local_disconnect_all', :aid => area_id ) + "(#{Member.total_disconnect_members_count(area_id)})" << separated_mark
@@ -132,11 +131,12 @@ module ApplicationHelper
       end
     
       result << link_to( '全部', :controller => 'histories', :action => 'index', :num_month_ago => 'all' ) << separated_mark
+      result << link_to( '計畫圖表', :controller => 'activities', :action => 'plan_chart' ) << separated_mark
       result << link_to( '活動報告', :controller => 'activities', :action => 'index' ) << separated_mark
       result << link_to( '活動計畫', :controller => 'activities', :action => 'plan_list' ) << separated_mark
-      result << link_to( '課程紀錄', :controller => 'histories', :action => 'index_by_month_peroid' ) << separated_mark
-      result << link_to( '計畫圖表', :controller => 'activities', :action => 'plan_chart' ) << separated_mark
+      result << link_to( '課程紀錄', :controller => 'histories', :action => 'index_by_month_peroid' ) << separated_mark      
       result << link_to( '課程圖表', :controller => 'histories', :action => 'chart_index_by_month_peroid' ) << separated_mark
+      result << link_to( '新增計畫', :controller => 'activities', :action => 'new' ) << separated_mark
       
       return "<div id='status_bar'>#{result.join(' ').to_s}</div>" 
 
@@ -224,9 +224,10 @@ module ApplicationHelper
         separated_mark = "｜"
         result << separated_mark
         result << link_to( "随机金句", :action => "show_golden_verse" ) << separated_mark
-        result << link_to( @verse_collect_for_me_title, :action => "show_golden_verse_collection" ) << separated_mark
-        result << link_to( @verse_collect_for_ppt_title, :action => "show_golden_verse_collection", :for_ppt => true ) << separated_mark
+        # result << link_to( @verse_collect_for_me_title, :action => "show_golden_verse_collection" ) << separated_mark
+        # result << link_to( @verse_collect_for_ppt_title, :action => "show_golden_verse_collection", :for_ppt => true ) << separated_mark
         result << link_to( "书籍目录", :controller => "books" ) << separated_mark
+        result << link_to( "新增书籍", :controller => "books", :action => "new" ) << separated_mark
         result << link_to( "字幕处理", :controller => "main", :action => "auto_add_str_start_time_form" ) << separated_mark << "<p/>"        
         return "<div id='status_bar'>#{result.join(' ').to_s}</div>"      
     end    
@@ -836,7 +837,7 @@ module ApplicationHelper
 
     # 显示人员报表的表头
     def member_report_table_th_row
-      "<tr class='th_row' align='center'><td>資料日期</td><td>祝福家庭</td><td>学生会员</td><td>职工会员</td><td>小学二世</td><td>中学二世</td><td>学生学员</td><td>职工学员</td><td>可受祝福</td><td>献身领导</td><td>献身会员</td><td>男核學生</td><td>男核青年</td><td>男核成人</td><td>男核大学</td><td>女核學生</td><td>女核青年</td><td>女核成人</td><td>女核大学</td><td>男新學生</td><td>男新青年</td><td>男新成人</td><td>男新大学</td><td>女新學生</td><td>女新青年</td><td>女新成人</td><td>女新大学</td><td>男普學生</td><td>男普青年</td><td>男普成人</td><td>男普大学</td><td>女普學生</td><td>女普青年</td><td>女普成人</td><td>女普大学</td><td>有效總計</td></tr>"
+      "<tr class='th_row' align='center'><td>資料日期</td><td>祝福家庭</td><td>学生会员</td><td>职工会员</td><td>小学孩子</td><td>中学孩子</td><td>学生学员</td><td>职工学员</td><td>可受祝福</td><td>献身领导</td><td>献身会员</td><td>男核學生</td><td>男核青年</td><td>男核成人</td><td>男核大学</td><td>女核學生</td><td>女核青年</td><td>女核成人</td><td>女核大学</td><td>男新學生</td><td>男新青年</td><td>男新成人</td><td>男新大学</td><td>女新學生</td><td>女新青年</td><td>女新成人</td><td>女新大学</td><td>男普學生</td><td>男普青年</td><td>男普成人</td><td>男普大学</td><td>女普學生</td><td>女普青年</td><td>女普成人</td><td>女普大学</td><td>有效總計</td></tr>"
     end
 
     # 回传人员报表中有效的人员总数
@@ -867,10 +868,10 @@ module ApplicationHelper
       end  
     end
 
-    # 依据2015年月報表(新版).xlsx 備註(二世、祝福候選人)
+    # 依据2015年月報表(新版).xlsx 備註(孩子、祝福候選人)
     def build_member_note( member )
       result = []
-      result << '二世' if member.career == '5' or member.is_2g
+      result << '孩子' if member.career == '5' or member.is_2g
       result << '祝福候選人' if member.blessedable
       if result.size > 0
         return result.join('、')
@@ -1071,7 +1072,7 @@ module ApplicationHelper
 
     # 显示活动内容的说明
     def activity_description( act )
-      result = %Q{名称：#{act.title}\n日期：#{act.begin_date}\n时间：#{show_time(act.begin_time)}\n地点：#{act.place}\n主持：#{act.manager}\n講師：#{act.teachers}\n学生：#{act.students}\n内容：#{act.content}
+      result = %Q{名称：#{act.title}\n日期：#{act.begin_date}\n时间：#{show_time(act.begin_time)}\n地点：#{act.place}\n講師：#{act.teachers}\n司会：#{act.manager}\n服侍：#{act.cleaner}
       }
     end
 
@@ -1139,7 +1140,7 @@ module ApplicationHelper
 
     # 显示金句上一句和下一句的链接
     def show_pre_next_verse_link(index)
-      "<span class='golden_verse_link'>#{link_to("上一句",:action => "show_golden_verse", :i => index-1,:for_ppt => params[:for_ppt])}&nbsp;#{link_to("下一句",:action => "show_golden_verse", :i => index+1,:for_ppt => params[:for_ppt])}</span>"
+      "<span class='golden_verse_link'>#{link_to("上一句",:action => "show_golden_verse", :i => index-1,:for_ppt => params[:for_ppt])}&nbsp;#{link_to("抽一句",:action => "show_golden_verse",:for_ppt => params[:for_ppt])}&nbsp;#{link_to("下一句",:action => "show_golden_verse", :i => index+1,:for_ppt => params[:for_ppt])}</span>"
     end    
 
     # 显示由此阅读以及全屏阅读链接(金句在独立的背景里显示)
@@ -1337,6 +1338,20 @@ module ApplicationHelper
     def sum_of_mcy_flow_assets
       sum_money_of 'flow_assets', 'MCY', 1, '', false, 'MCY'
     end
+
+    #准备收支试算表需要的参数
+    def set_cal_retire_table_params( options = { :end_date => Date.today+6.months, :show_everyday => false } )
+      # 取出接案收入的参数列表
+      build_params_from_pname
+      # 设定最终日
+      params[:t16_y] = options[:end_date].year
+      params[:t16_m] = options[:end_date].month
+      params[:t16_d] = options[:end_date].day
+      # 设定不显示标题
+      params[:show_retire_table_title] = nil
+      # 顯示每天的計算結果
+      params[:o8] = options[:show_everyday]
+    end    
 
     ######################### 以下由模擬系統專用 #########################    
 

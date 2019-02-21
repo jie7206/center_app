@@ -44,16 +44,14 @@ form_tag ( '/histories/auto_create', :method => :get ) do
     <!--td>學歷</td>
     <td>職業</td-->
     <td><%= link_to "生日", :order_method => "get_birthday_short", :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] %></td>
-    <td>手機</td>
     <td><%= link_to "联系日期", :order_method => "last_class_date", :order_desc => 1, :include_trace => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] %></td>
     <td><%= link_to "本季活动", {:order_method => "histories_count_3month", :order_desc => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids]},{:title => "3个月内出席公的活动次数，更新记录 >= #{(Date.today-3.month).to_s(:db)}"} %></td>
     <td><%= link_to "半年活动", {:order_method => "histories_count_6month", :order_desc => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids]},{:title => "6个月内出席公的活动次数，更新记录 >= #{(Date.today-6.month).to_s(:db)}"} %></td>
-        <td><%= link_to "本季奉献", {:order_method => "donated_count", :order_desc => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] },{:title=>"3个月内的奉獻次數，更新记录 >= #{(Date.today-3.month).to_s(:db)}"}%></td>
-        <td><%= link_to "半年奉献", {:order_method => "donated_count_6months", :order_desc => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] },{:title=>"6个月内的奉獻次數，更新记录 >= #{(Date.today-6.month).to_s(:db)}"}%></td>
-        <td><%= link_to "奉献总额", {:order_method => "donation_total_amount", :order_desc => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids]}, {:title => "从有记录起到现在所有的奉献总额"} %></td>
-        <td><%= link_to "每月平均", {:order_method => "donation_month_ave", :order_desc => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids]}, {:title => "从有记录起到现在平均每个月的奉献"}%></td>
+        <td><%= link_to "本季缴费", {:order_method => "donated_count", :order_desc => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] },{:title=>"3个月内的奉獻次數，更新记录 >= #{(Date.today-3.month).to_s(:db)}"}%></td>
+        <td><%= link_to "半年缴费", {:order_method => "donated_count_6months", :order_desc => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] },{:title=>"6个月内的奉獻次數，更新记录 >= #{(Date.today-6.month).to_s(:db)}"}%></td>
+        <td><%= link_to "缴费总额", {:order_method => "donation_total_amount", :order_desc => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids]}, {:title => "从有记录起到现在所有的缴费总额"} %></td>
+        <td><%= link_to "每月平均", {:order_method => "donation_month_ave", :order_desc => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids]}, {:title => "从有记录起到现在平均每个月的缴费"}%></td>
     <!--td><%= link_to "子女数", :order_method => "children_count", :order_desc => 1, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] %></td-->
-    <td><%= link_to "父母姓名", :order_method => "father_id", :order_desc => 0, :cid => params[:cid], :s => params[:s], :sid => params[:sid], :m => params[:m], :p => params[:p], :mids => params[:mids] %></td>
   </tr>
   
 <% 
@@ -85,7 +83,6 @@ form_tag ( '/histories/auto_create', :method => :get ) do
             <!--td width="70" align="center"><%= link_to career_arr.rassoc(member.career)[0], edit_member_path(member) %></td-->
             <!--td><%= link_to area_arr.rassoc(member.area_id)[0], edit_member_path(member) %></td-->  
             <td align="center"><%= link_to member.get_birthday, edit_member_path(member) %></td>
-            <td><%= link_to member.mobile, edit_member_path(member) if member.mobile %></td>
             <td align="center"><%= link_to member.trace.last_class_date.strftime("%y-%m-%d"), edit_trace_path(member.trace), :title => member.trace.last_class_title %></td>
             <td align="right"><%= link_to( member.histories_count_3month, :controller => "histories", :action => "member_history_list", :mid => member.id ) %></td>
             <td align="right"><%= link_to( member.histories_count_6month, :controller => "histories", :action => "member_history_list", :mid => member.id ) %></td>
@@ -94,18 +91,6 @@ form_tag ( '/histories/auto_create', :method => :get ) do
                 <td align="right"><%= link_to member.donation_total_amount, :controller => "donations", :action => "index", :data_field => 'member_id', :data_value => member.id %></td>
                 <td align="right"><%= member.donation_month_ave %></td>
                 <!--td align="right"><%= link_to member.children_count, :action => 'select_children', :p => member.id %></td-->
-            <td width="70">
-                <% if member.father_id and member.father_id > 0 %>
-                    <%= Member.find(member.father_id).name %>
-                <% elsif member.introducer_id and member.introducer_id > 0 
-                    begin
-                        if m = Member.find(member.introducer_id) %>
-                            <%= m.name %>
-                <%      end
-                    rescue
-                    end %>
-                <% end %>
-            </td>
             <% n += 1 %>
           </tr>
         <% end %>

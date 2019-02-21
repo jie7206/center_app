@@ -20,7 +20,7 @@
       <% end %>
       <% ################### 显示定存目标(结束) ################### %>    
 <p/>
-<table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;font-size:0.8em" align="center" width="<%= @table_width %>">  
+<table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;font-size:0.8em" align="center" width="<%= value_of("life_chart_table_width") %>">  
   <tr>  
     <td align="center" class='th_row'>距離退休</td><td align="right"><%= link_to @retire_date_diff, '#', :title => "退休日: #{@retire_date}" %> 天</td>
     <td align="center" class='th_row'>流動資產</td><td align="right"><%= link_to_total_flow_assets %> 元</td>
@@ -35,11 +35,15 @@
   <!-- 显示资产目标 //-->
   <tr align="center">
     <td colspan="16" align="center" style="color:#DD0000;align:left;font-size:6px;background-color: #FFC;">
-      <% results[0,12].each do |r| 
+      <% results[0,11].each do |r| 
         style = (r[:year]-2016)%3 == 0 ? 'style="font-weight:bold"' : '' %>
         <span <%= style %>><%= r[:year] %></span> : <%= r[:goal] %>&nbsp;
       <% end %>
     </td>
   </tr>
-</table>   
+</table>
+<p/>
+<% ################### 加入收支试算表 ###################
+set_cal_retire_table_params %>
+<%= render :partial => 'main/cal_retire_table' %>  
 <p/>

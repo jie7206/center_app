@@ -35,8 +35,9 @@ class MainController < ApplicationController
       return true
     else
       #Guest身份
-      session[:role] = 'guest'
-      return true
+      #session[:role] = 'guest'
+      flash[:notice] = "帐号或密码输入错误！"
+      return false
     end
   end
   
@@ -87,7 +88,7 @@ class MainController < ApplicationController
       n_histories = n_traces = 0
       h_histories["histories"].each do |h|
         if !h["class_date"].nil? and h["class_date"] > value_of('class_date_start_date').to_date and h["class_teacher"] != '林仕傑' and !History.find(:first, :conditions => ["name = ? and class_date = ? and class_title = ?", h["name"], h["class_date"], h["class_title"]])
-          h["name"] = '林仕傑' if h["name"] == '林仕杰'
+          h["name"] = 'Michael' if h["name"] == 'Michael'
           member_id = get_member_id(h["name"])
           History.create( 
             :member_id => member_id,
@@ -599,7 +600,7 @@ class MainController < ApplicationController
     expenses_after_retire_step = params["expenses_after_retire_step"].to_i      #退休月生活费(幅度)
     save_rate = params["save_rate"].to_f                  #2029年存款利率
     insurance_after_retire = params["insurance_after_retire"].to_i        #退休每月保费 直到2029
-    begin_year = 2016
+    begin_year = Date.today.year
     save_year = 2029
     end_year = 2031
 
@@ -807,7 +808,7 @@ class MainController < ApplicationController
   end
 
   # 随即取出一句新版天圣经中的圣言(主程序)
-  def golden_verse_main_func( keywords = nil, list_collect = false, min_length = 40, max_length = 2000 )
+  def golden_verse_main_func( keywords = nil, list_collect = false, min_length = 10, max_length = 1000 )
     get_book_data if !@verse_book
     @golden_verse_title = @verse_book_title
     @collect_arr = get_collect_arr # 无论怎样都得用，故放此
@@ -816,6 +817,21 @@ class MainController < ApplicationController
     if not source.empty?
       @verses = [] ; result_arr = [] ; i = 0
       source.each_line do |line|
+        if line.length >= min_length and line.length <= max_length
+          if keywords and !keywords.empty? # 如果有输入搜索关键字
+            if line.index(keywords)
+              @verses << line
+              result_arr << i 
+            end
+          elsif list_collect
+            order_i = @collect_arr.index(i.to_s)
+            @verses[order_i] = line if order_i
+          else
+            @verses << line
+          end
+          i += 1
+        end
+=begin
         pattern_begin = //
         pattern_end = /(。)$+|(？)$+|(”)$+|(！)$+|(」)$+/
         if line.length >= min_length and line.length <= max_length and line.index(pattern_end)         
@@ -832,7 +848,8 @@ class MainController < ApplicationController
           end
           i += 1
         end
-      end
+=end        
+      end      
     end
     if keywords and !keywords.empty? # 如果有输入搜索关键字
       @index = params[:i] ? params[:i].to_i : 0
@@ -899,6 +916,26 @@ class MainController < ApplicationController
         end
       end
     end    
+  end
+
+  # 处理视频字幕自动转换成文本
+  def str_2_txt
+    read_path = RAILS_ROOT+"/txt/srt/test.srt"
+    write_path = RAILS_ROOT+"/txt/srt/test.txt"
+    fw = File.new(write_path,"w")
+    output = source = ""
+    File.open(read_path) {|f| source = f.read}
+    if not source.empty?
+      @verses = [] ; result_arr = [] ; i = 0
+      source.each_line do |line|
+        if !line.index(/^(\d)/) and line.length > 1
+          output += line.gsub("\n",'') + "\n"
+        end
+      end
+    end
+    fw.puts output
+    fw.close
+    render :text => "OK! #{Time.now}"
   end
 
   # 显示退休试算表单/结果

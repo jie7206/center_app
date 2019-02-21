@@ -60,7 +60,11 @@ class ActivitiesController < ApplicationController
   # GET /activities/new.xml
   def new
     @activity = Activity.new
-
+    @activity.title = '主日礼拜'
+    @activity.place = '望京中心'
+    @activity.teachers = '林仕傑'
+    @activity.begin_time = @activity.begin_time ? @activity.begin_time : '10:30'
+    @activity.end_time = @activity.end_time ? @activity.end_time : '12:00'
     respond_to do |format|
       format.html # new.html.erb
       format.xml  { render :xml => @activity }

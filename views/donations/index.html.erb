@@ -11,6 +11,7 @@
     <% live_donation = get_recent_donation_data 4,recent_shiyi_donation_months %>
     <td class='th_row' width="130"><%=recent_shiyi_donation_months%>月住宿 </td><td align="center"><%= live_donation[:month_data] %></td>
     <td class='th_row' width="80">月均 </td><td align="right" width="80"><%= live_donation[:month_ave] %> 元</td>
+    <td class='th_row' width="80">合计 </td><td align="right" width="80"><%= shiyi_donation[:month_ave]+live_donation[:month_ave] %> 元</td>
   </tr>    
 </table>   
 <p/>

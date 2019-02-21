@@ -15,7 +15,8 @@
             </tr><tr><td valign='top' style="font-size:0.2em">
               <% @activities.each do |act| %>
                 <% if act.begin_date.to_s(:db) == date %>
-                  <%= link_to show_time(act.begin_time)+" "+act.students, {:action => :edit, :id => act}, {:title => activity_description(act) } %><br/>
+                  <%#= link_to show_time(act.begin_time)+" "+act.title, {:action => :edit, :id => act}, {:title => activity_description(act) } %>
+                  <%= line_to_br(activity_description(act)) %>
                 <% end %>
               <% end %>
             </td></tr></table>
@@ -26,3 +27,4 @@
     <% end %>    
   <% end %>  
 </table>
+<p>&nbsp;</p>

@@ -1,6 +1,4 @@
 <% form_for(@activity) do |f| %>
-  <% @activity.begin_time = @activity.begin_time ? @activity.begin_time : '09:00' %>
-  <% @activity.end_time = @activity.end_time ? @activity.end_time : '16:00' %>
   <%= f.error_messages %>
   <p>名稱：<%= f.text_field :title, :size => 38 %></p>
   <p>開始：<%= f.date_select :begin_date, :use_month_numbers => true, :begin_year => Time.now.year-10, :end_year => Time.now.year+3 %>&nbsp;&nbsp;时间：
@@ -8,13 +6,15 @@
   <p>結束：<%= f.date_select :end_date, :use_month_numbers => true, :begin_year => Time.now.year-10, :end_year => Time.now.year+3 %>&nbsp;&nbsp;时间：
   <%= f.text_field :end_time, :size => 4, :value => @activity.end_time.strftime("%H:%M") %></p>
   <p>地點：<%= f.text_field :place, :size => 38 %></p>
-  <p>主持：<%= f.text_field :manager, :size => 38 %></p>
-  <p>講師：<%= f.text_field :teachers, :size => 38 %></p>
+  <p>講師：<%= select("activity", "teachers", Member.find_all_by_is_teacher(true).collect {|m| [ m.name, m.name ] }, { :include_blank => false }) %></p>
+  <p>司會：<%= select("activity", "manager", Member.find_all_by_is_manager(true).collect {|m| [ m.name, m.name ] }, { :include_blank => false }) %></p>
+  <p>服侍：<%= select("activity", "cleaner", Member.find_all_by_is_cleaner(true).collect {|m| [ m.name, m.name ] }, { :include_blank => false }) %></p>
+  <p><%= f.check_box :is_achievement %> 將此活動列入報表</p>
   <p>預計參與的人數：<%= f.text_field :expect_people_count, :size => 26 %></p>
   <p>实际參與的人數：<%= f.text_field :people_count, :size => 26 %></p>
   <p>活動的主要目的：<br/><%= f.text_area :method_and_goal, :size => "46x3" %></p>
-  <p>活動的主要内容：<br/><%= f.text_area :content, :size => "46x3" %></p><p><%= f.check_box :is_achievement %> 此活動已完成並將此活動列入紀錄</p>  
-  <p>活動的參與人員：(例如：呂方樹,陸媛媛)<br/><%= f.text_area :students, :size => "50x3", :wrap => 'off' %></p>
+  <p>活動的主要内容：<br/><%= f.text_area :content, :size => "46x3" %></p>  
+  <p>活動的參與人員：<br/><%= f.text_area :students, :size => "50x3", :wrap => 'off' %></p>
   <p>活動的具體成果：<br/><%= f.text_area :achievement, :size => "50x3" %></p>
   <p>活動檢討與建議：<br/><%= f.text_area :criticism, :size => "50x3" %></p>
   <p><%= f.submit submit_title %>&nbsp;&nbsp;<%= button_to_function '返回前頁', "history.back();" %></p>

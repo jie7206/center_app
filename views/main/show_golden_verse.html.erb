@@ -19,7 +19,7 @@ h2 {
   how_to_use += "#{p_with_style}個人用：抽或搜 → 加入#{@verse_collect_for_me_title} → 删或排 → 全屏观看</p>"
   how_to_use += "#{p_with_style}教材用：抽或搜 → 加入#{@verse_collect_for_ppt_title} → 删或排 → 全屏截图</p></div>"
 %>
-<%= how_to_use %>
+<%#= how_to_use %>
 <table width="1000" border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;" align="center">
   <tr><td class='th_row'>&nbsp;</td></tr>
   <!-- 随机抽出单句 //-->
@@ -30,8 +30,8 @@ h2 {
           <div class="func_bar">   
             <%= show_pre_next_verse_link(@index) %>
             <%= show_read_start_here_link(@index) %>
-            <%= show_collect_golden_verse_link(@index) %>
-            <%= show_collect_for_ppt_link(@index) %>
+            <%#= show_collect_golden_verse_link(@index) %>
+            <%#= show_collect_for_ppt_link(@index) %>
           </div>
         </td>
       </tr>
@@ -45,17 +45,17 @@ h2 {
             <%= i+1 %>.<%= verse.gsub( @keywords, "<span style='color:#fff;background-color:#dc2f47'>#{@keywords}</span>") %>
             <div class="func_bar">
               <%= show_read_start_here_link(@verses_index[i], false, @keywords) %>
-              <%= show_collect_golden_verse_link(@verses_index[i]) %>
-              <%= show_collect_for_ppt_link(@verses_index[i]) %>
+              <%#= show_collect_golden_verse_link(@verses_index[i]) %>
+              <%#= show_collect_for_ppt_link(@verses_index[i]) %>
             </div>
           <% elsif @list_collect %>
     		    <%= i+1 %>.<%= verse %>
             <div class="func_bar">
               <%= show_read_start_here_link(@verses_index[i], true) %>
-              <%= show_collect_golden_verse_link(@verses_index[i]) %>
-              <%= show_collect_for_ppt_link(@verses_index[i]) %>
-              <%= show_delete_golden_verse_link(@verses_index[i])%>
-              <%= verse_order_link(@verses_index[i]) %>
+              <%#= show_collect_golden_verse_link(@verses_index[i]) %>
+              <%#= show_collect_for_ppt_link(@verses_index[i]) %>
+              <%#= show_delete_golden_verse_link(@verses_index[i])%>
+              <%#= verse_order_link(@verses_index[i]) %>
             </div>
           <% end %>          
         </td>
